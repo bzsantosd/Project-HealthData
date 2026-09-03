@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HealthData - Portal do Colaborador</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <aside class="sidebar">
+    <div class="logo-box">H</div>
+    <nav class="sidebar-nav">
+      <button class="nav-item active" data-tab="tab-home" title="Painel"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg></button>
+      <button class="nav-item" data-tab="tab-perfil" title="Perfil"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg></button>
+      <button class="nav-item badge-parent" data-tab="tab-alertas" title="Alertas"><span class="nav-badge">2</span><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg></button>
+      <button class="nav-item" data-tab="tab-metas" title="Indicadores"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg></button>
+    </nav>
+    <button class="nav-item" title="Sair"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg></button>
+  </aside>
+
+  <div class="wrapper">
+    <header class="topbar">
+      <span class="brand-title">HealthData</span>
+      <div class="topbar-actions">
+        <button class="btn-theme-toggle">Claro</button>
+        <div class="user-avatar">MF</div>
+      </div>
+    </header>
+
+    <main class="main-container">
+      
+      <!-- ABA 1: HOME (CARDS) -->
+      <section id="tab-home" class="tab-content active">
+        <h1>Painel de Saúde Ocupacional</h1>
+        <p class="subtitle">Monitoramento de exames periódicos, encaminhamentos e conformidade NR-7</p>
+        
+        <div class="cards-grid mt-24">
+          <div class="dash-card">
+            <div class="card-img-wrapper">
+              <img src="https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=600" alt="Treinamento">
+              <span class="tag-floating tag-red">TREINAMENTO</span>
+            </div>
+            <div class="card-body">
+              <h3>NR-17 — Ergonomia e Prevenção de LER/DORT</h3>
+              <p>Capacitação obrigatória sobre ergonomia no posto de trabalho e prevenção de lesões por esforço repetitivo.</p>
+            </div>
+            <div class="card-footer-info"><span>30 min | 30 ago · 08h às 17h</span><button class="btn-outline-red">INSCRIÇÃO OBRIGATÓRIA</button></div>
+          </div>
+
+          <div class="dash-card">
+            <div class="card-img-wrapper">
+              <img src="https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=600" alt="Meta">
+              <span class="tag-floating tag-teal">META DO SETOR</span>
+            </div>
+            <div class="card-body">
+              <h3>Uso de EPI Auditivo em 100% dos Turnos</h3>
+              <p>Campanha de conformidade para garantir o uso contínuo de protetor auditivo em todos os postos da Linha 3.</p>
+            </div>
+            <div class="card-footer-info"><span>Linha 3 / Verificação diária</span><span class="badge-outline-teal">EM ANDAMENTO</span></div>
+          </div>
+
+          <div class="dash-card">
+            <div class="card-img-wrapper">
+              <img src="https://images.unsplash.com/photo-1615461066841-6116e61058f4?w=600" alt="Doação">
+              <span class="tag-floating tag-orange">CAMPANHA</span>
+            </div>
+            <div class="card-body">
+              <h3>Doação de Sangue — Ambulatório da Planta</h3>
+              <p>Ação voluntária organizada pelo ambulatório em parceria com o Hemocentro Regional. Todos são incentivados a participar.</p>
+            </div>
+            <div class="card-footer-info"><span>Sábado, 08 ago · 08h às 12h</span><button class="btn-outline-orange">VOLUNTÁRIO</button></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ABA 2: PERFIL DO COLABORADOR -->
+      <section id="tab-perfil" class="tab-content">
+        <h1>Perfil do Colaborador</h1>
+        <p class="subtitle">Maria Fernandes · Matrícula 12345</p>
+
+        <div class="profile-grid mt-24">
+          <div class="profile-main-card">
+            <div class="profile-header">
+              <div class="avatar-lg">MF</div>
+              <div>
+                <h2>Maria Fernandes</h2>
+                <p>Op. de Máquina · Linha de Produção 3</p>
+                <span class="badge-status-green">Turno A — Ativo</span>
+              </div>
+            </div>
+            <div class="profile-details-grid">
+              <div><label>NOME COMPLETO</label><p>Maria Fernandes</p></div>
+              <div><label>DATA DE NASCIMENTO</label><p>12/03/1964</p></div>
+              <div><label>IDADE</label><p>62 anos</p></div>
+              <div><label>TIPO SANGUÍNEO</label><p>O+</p></div>
+              <div><label>MATRÍCULA</label><p>12345</p></div>
+              <div><label>ADMISSÃO</label><p>03/2011</p></div>
+              <div><label>FUNÇÃO</label><p>Op. de Máquina</p></div>
+              <div><label>SETOR</label><p>Linha de Produção 3</p></div>
+              <div><label>TURNO</label><p>Turno A</p></div>
+              <div><label>REGIME</label><p>CLT · Integral</p></div>
+            </div>
+          </div>
+
+          <div class="profile-side-column">
+            <div class="side-card">
+              <h3>CONDIÇÕES E RESTRIÇÕES</h3>
+              <div class="condition-item red"><strong>Alergia — Penicilina</strong><p>Reação anafilática confirmada</p></div>
+              <div class="condition-item red"><strong>Alergia — Amendoim</strong><p>Intolerância documentada</p></div>
+              <div class="condition-item teal"><strong>PCD — Mobilidade</strong><p>Laudo INSS — Portaria 2024</p></div>
+              <div class="condition-item orange"><strong>Doadora de Sangue</strong><p>Tipo O+ · Última doação 04/2026</p></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ABA 3: ALERTAS E ENCAMINHAMENTOS -->
+      <section id="tab-alertas" class="tab-content">
+        <h1>Alertas e Encaminhamentos</h1>
+        <p class="subtitle">Pendências e ações recomendadas pelo serviço de saúde</p>
+
+        <div class="alert-banner-red mt-24">
+          <div class="alert-banner-header">
+            <h3>⚠️ ASO PENDENTE DE REAVALIAÇÃO</h3>
+            <span>Emitido em 22/07/2026</span>
+          </div>
+          <p>Exame de colesterol total fora da faixa de referência — resultado 240 mg/dL (referência até 200 mg/dL), coletado em 22/07/2026. O serviço médico recomenda reavaliação com cardiologista e repetição do exame em 30 dias.</p>
+          <div class="alert-actions">
+            <button class="btn-outline-light">VER LAUDO</button>
+            <button class="btn-solid-orange">📅 AGENDAR REAVALIAÇÃO</button>
+          </div>
+          <p class="prazo-text">Prazo para reavaliação: <strong>22/08/2026</strong> — 16 dias restantes</p>
+        </div>
+
+        <h2 class="mt-24 mb-16">ENCAMINHAMENTOS ATIVOS</h2>
+        <div class="encaminhamentos-grid">
+          <div class="enc-card border-teal">
+            <span class="enc-tag">CLÍNICO GERAL</span>
+            <h3>Dra. Ana Costa</h3>
+            <p>Ambulatório da Planta — Bloco C</p>
+            <div class="enc-footer"><span class="badge-status-teal">Consulta agendada</span><a href="#">Detalhes →</a></div>
+          </div>
+          <div class="enc-card border-orange">
+            <span class="enc-tag">CARDIOLOGIA</span>
+            <h3>Dr. Ricardo Melo</h3>
+            <p>Rede credenciada SESI — Unidade Centro</p>
+            <div class="enc-footer"><span class="badge-status-orange">Aguardando agendamento</span><a href="#">Detalhes →</a></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ABA 4: INDICADORES E METAS -->
+      <section id="tab-metas" class="tab-content">
+        <h1>Indicadores e Metas</h1>
+        <p class="subtitle">Acompanhamento de conformidade e saúde ocupacional — 2026</p>
+
+        <div class="stats-grid mt-24">
+          <div class="stat-card"><span class="stat-title">Exames Realizados</span><span class="stat-value">7</span><span class="stat-sub">em 2026</span></div>
+          <div class="stat-card"><span class="stat-title">Atestados Médicos</span><span class="stat-value">2</span><span class="stat-sub">último trimestre</span></div>
+          <div class="stat-card"><span class="stat-title">Dias de Afastamento</span><span class="stat-value">3</span><span class="stat-sub">último trimestre</span></div>
+          <div class="stat-card"><span class="stat-title">Próximo Exame</span><span class="stat-value">14/10</span><span class="stat-sub">ASO reavaliação</span></div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
