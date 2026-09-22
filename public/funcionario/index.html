@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>HealthData - Portal do Colaborador</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=3">
 </head>
 <body>
 
@@ -23,7 +23,7 @@
     <header class="topbar">
       <span class="brand-title">HealthData</span>
       <div class="topbar-actions">
-        <button class="btn-theme-toggle">Claro</button>
+        <button class="btn-theme-toggle" id="themeToggle" type="button">Claro</button>
         <div class="user-avatar">MF</div>
       </div>
     </header>
@@ -35,7 +35,7 @@
         <h1>Painel de Saúde Ocupacional</h1>
         <p class="subtitle">Monitoramento de exames periódicos, encaminhamentos e conformidade NR-7</p>
         
-        <div class="cards-grid mt-24">
+        <div class="cards-grid mt-24" id="publicacoesGrid">
           <div class="dash-card">
             <div class="card-img-wrapper">
               <img src="https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=600" alt="Treinamento">
@@ -72,39 +72,55 @@
             <div class="card-footer-info"><span>Sábado, 08 ago · 08h às 12h</span><button class="btn-outline-orange">VOLUNTÁRIO</button></div>
           </div>
         </div>
+
+        <div class="employee-section-heading mt-24">
+          <div>
+            <h2>Rede credenciada</h2>
+            <p class="subtitle">Médicos e especialidades disponíveis no ambulatório</p>
+          </div>
+          <span class="section-label">ATENDIMENTO</span>
+        </div>
+        <div class="doctor-directory" id="doctorDirectory">
+          <div class="directory-loading">Carregando rede credenciada...</div>
+        </div>
       </section>
 
       <!-- ABA 2: PERFIL DO COLABORADOR -->
       <section id="tab-perfil" class="tab-content">
-        <h1>Perfil do Colaborador</h1>
-        <p class="subtitle">Maria Fernandes · Matrícula 12345</p>
+        <div class="section-heading">
+          <div>
+            <h1>Perfil do Colaborador</h1>
+            <p class="subtitle" id="perfilSubtitle">Carregando perfil...</p>
+          </div>
+          <button class="btn-solid-orange" id="btnEditarPerfil" type="button">Editar informações</button>
+        </div>
 
         <div class="profile-grid mt-24">
           <div class="profile-main-card">
             <div class="profile-header">
               <div class="avatar-lg">MF</div>
               <div>
-                <h2>Maria Fernandes</h2>
-                <p>Op. de Máquina · Linha de Produção 3</p>
-                <span class="badge-status-green">Turno A — Ativo</span>
+                <h2 id="perfilNome">Carregando...</h2>
+                <p id="perfilResumo">Carregando...</p>
+                <span class="badge-status-green" id="perfilStatus">Carregando...</span>
               </div>
             </div>
             <div class="profile-details-grid">
-              <div><label>NOME COMPLETO</label><p>Maria Fernandes</p></div>
+              <div><label>NOME COMPLETO</label><p id="perfilNomeCompleto">-</p></div>
               <div><label>DATA DE NASCIMENTO</label><p>12/03/1964</p></div>
-              <div><label>IDADE</label><p>62 anos</p></div>
-              <div><label>TIPO SANGUÍNEO</label><p>O+</p></div>
-              <div><label>MATRÍCULA</label><p>12345</p></div>
-              <div><label>ADMISSÃO</label><p>03/2011</p></div>
-              <div><label>FUNÇÃO</label><p>Op. de Máquina</p></div>
-              <div><label>SETOR</label><p>Linha de Produção 3</p></div>
-              <div><label>TURNO</label><p>Turno A</p></div>
-              <div><label>REGIME</label><p>CLT · Integral</p></div>
+              <div><label>IDADE</label><p id="perfilIdade">-</p></div>
+              <div><label>TIPO SANGUÍNEO</label><p id="perfilSangue">-</p></div>
+              <div><label>MATRÍCULA</label><p id="perfilMatricula">-</p></div>
+              <div><label>ADMISSÃO</label><p id="perfilAdmissao">-</p></div>
+              <div><label>FUNÇÃO</label><p id="perfilCargo">-</p></div>
+              <div><label>SETOR</label><p id="perfilSetor">-</p></div>
+              <div><label>TURNO</label><p id="perfilTurno">-</p></div>
+              <div><label>REGIME</label><p id="perfilRegime">-</p></div>
             </div>
           </div>
 
           <div class="profile-side-column">
-            <div class="side-card">
+            <div class="side-card" id="condicoesCard">
               <h3>CONDIÇÕES E RESTRIÇÕES</h3>
               <div class="condition-item red"><strong>Alergia — Penicilina</strong><p>Reação anafilática confirmada</p></div>
               <div class="condition-item red"><strong>Alergia — Amendoim</strong><p>Intolerância documentada</p></div>
@@ -127,8 +143,8 @@
           </div>
           <p>Exame de colesterol total fora da faixa de referência — resultado 240 mg/dL (referência até 200 mg/dL), coletado em 22/07/2026. O serviço médico recomenda reavaliação com cardiologista e repetição do exame em 30 dias.</p>
           <div class="alert-actions">
-            <button class="btn-outline-light">VER LAUDO</button>
-            <button class="btn-solid-orange">📅 AGENDAR REAVALIAÇÃO</button>
+            <button class="btn-outline-light" id="btnVerLaudo" type="button">VER LAUDO</button>
+            <button class="btn-solid-orange" id="btnAgendar" type="button">📅 AGENDAR REAVALIAÇÃO</button>
           </div>
           <p class="prazo-text">Prazo para reavaliação: <strong>22/08/2026</strong> — 16 dias restantes</p>
         </div>
@@ -139,31 +155,115 @@
             <span class="enc-tag">CLÍNICO GERAL</span>
             <h3>Dra. Ana Costa</h3>
             <p>Ambulatório da Planta — Bloco C</p>
-            <div class="enc-footer"><span class="badge-status-teal">Consulta agendada</span><a href="#">Detalhes →</a></div>
+            <div class="enc-footer"><span class="badge-status-teal">Consulta agendada</span><button class="detail-link" type="button" data-detail-index="0">Detalhes →</button></div>
           </div>
           <div class="enc-card border-orange">
             <span class="enc-tag">CARDIOLOGIA</span>
             <h3>Dr. Ricardo Melo</h3>
             <p>Rede credenciada SESI — Unidade Centro</p>
-            <div class="enc-footer"><span class="badge-status-orange">Aguardando agendamento</span><a href="#">Detalhes →</a></div>
+            <div class="enc-footer"><span class="badge-status-orange">Aguardando agendamento</span><button class="detail-link" type="button" data-detail-index="1">Detalhes →</button></div>
           </div>
         </div>
       </section>
 
       <!-- ABA 4: INDICADORES E METAS -->
       <section id="tab-metas" class="tab-content">
-        <h1>Indicadores e Metas</h1>
-        <p class="subtitle">Acompanhamento de conformidade e saúde ocupacional — 2026</p>
+        <div class="section-heading">
+          <div>
+            <h1>Indicadores e Metas</h1>
+            <p class="subtitle">Acompanhamento de conformidade e saúde ocupacional — 2026</p>
+          </div>
+          <span class="period-badge">ANO 2026</span>
+        </div>
 
         <div class="stats-grid mt-24">
-          <div class="stat-card"><span class="stat-title">Exames Realizados</span><span class="stat-value">7</span><span class="stat-sub">em 2026</span></div>
-          <div class="stat-card"><span class="stat-title">Atestados Médicos</span><span class="stat-value">2</span><span class="stat-sub">último trimestre</span></div>
-          <div class="stat-card"><span class="stat-title">Dias de Afastamento</span><span class="stat-value">3</span><span class="stat-sub">último trimestre</span></div>
-          <div class="stat-card"><span class="stat-title">Próximo Exame</span><span class="stat-value">14/10</span><span class="stat-sub">ASO reavaliação</span></div>
+          <div class="stat-card metric-teal"><span class="stat-title">Exames realizados</span><span class="stat-value">7</span><span class="stat-sub">em 2026</span></div>
+          <div class="stat-card metric-orange"><span class="stat-title">Atestados médicos</span><span class="stat-value">2</span><span class="stat-sub">último trimestre</span></div>
+          <div class="stat-card metric-red"><span class="stat-title">Dias de afastamento</span><span class="stat-value">3</span><span class="stat-sub">último trimestre</span></div>
+          <div class="stat-card metric-blue"><span class="stat-title">Próximo exame</span><span class="stat-value">14/10</span><span class="stat-sub">ASO de reavaliação</span></div>
+        </div>
+
+        <div class="metrics-content-grid mt-24">
+          <div class="metrics-panel">
+            <div class="panel-heading"><div><h2>Minhas metas de saúde</h2><p class="subtitle">Acompanhe seu progresso no período</p></div><span class="panel-status">3 de 4 em dia</span></div>
+            <div class="goal-list">
+              <div class="goal-item">
+                <div class="goal-heading"><strong>Exames periódicos</strong><span class="goal-value goal-success">100%</span></div>
+                <p>Exame ocupacional realizado dentro do prazo</p>
+                <div class="progress-track"><span class="progress-fill progress-teal" style="width: 100%"></span></div>
+              </div>
+              <div class="goal-item">
+                <div class="goal-heading"><strong>ASO atualizado</strong><span class="goal-value goal-warning">80%</span></div>
+                <p>Reavaliação cardiológica pendente</p>
+                <div class="progress-track"><span class="progress-fill progress-orange" style="width: 80%"></span></div>
+              </div>
+              <div class="goal-item">
+                <div class="goal-heading"><strong>Treinamentos obrigatórios</strong><span class="goal-value goal-success">100%</span></div>
+                <p>Todos os treinamentos do ciclo concluídos</p>
+                <div class="progress-track"><span class="progress-fill progress-teal" style="width: 100%"></span></div>
+              </div>
+              <div class="goal-item">
+                <div class="goal-heading"><strong>Registros de saúde</strong><span class="goal-value goal-danger">60%</span></div>
+                <p>Atualize suas informações de saúde no perfil</p>
+                <div class="progress-track"><span class="progress-fill progress-red" style="width: 60%"></span></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="metrics-panel">
+            <div class="panel-heading"><div><h2>Resumo recente</h2><p class="subtitle">Últimas movimentações do seu acompanhamento</p></div></div>
+            <div class="timeline-list">
+              <div class="timeline-item"><span class="timeline-dot dot-teal"></span><div><strong>Exame periódico concluído</strong><p>Resultado normal · 22/07/2026</p></div></div>
+              <div class="timeline-item"><span class="timeline-dot dot-orange"></span><div><strong>Encaminhamento para cardiologia</strong><p>Aguardando agendamento · 22/07/2026</p></div></div>
+              <div class="timeline-item"><span class="timeline-dot dot-teal"></span><div><strong>Treinamento NR-17 concluído</strong><p>Participação registrada · 30/08/2026</p></div></div>
+              <div class="timeline-item"><span class="timeline-dot dot-red"></span><div><strong>Perfil de saúde atualizado</strong><p>Revise alergias e comorbidades</p></div></div>
+            </div>
+          </div>
         </div>
       </section>
 
     </main>
+  </div>
+
+  <div class="modal-overlay" id="perfilModal" aria-hidden="true">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div>
+          <h2>Editar informações de saúde</h2>
+          <p class="subtitle">Informe uma alergia ou comorbidade por linha.</p>
+        </div>
+        <button class="modal-close" id="btnFecharPerfil" type="button" aria-label="Fechar">&times;</button>
+      </div>
+      <form id="perfilForm">
+        <label for="perfilAlergias">Alergias</label>
+        <textarea id="perfilAlergias" rows="4" placeholder="Ex.: Penicilina — reação anafilática"></textarea>
+        <label for="perfilComorbidades">Comorbidades</label>
+        <textarea id="perfilComorbidades" rows="4" placeholder="Ex.: Hipertensão controlada"></textarea>
+        <div class="modal-actions">
+          <button class="btn-outline-light" id="btnCancelarPerfil" type="button">Cancelar</button>
+          <button class="btn-solid-orange" type="submit">Salvar informações</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="detalhesModal" aria-hidden="true">
+    <div class="modal-card details-card">
+      <div class="modal-header">
+        <div>
+          <span class="enc-tag" id="detalhesEspecialidade">ENCAMINHAMENTO</span>
+          <h2 id="detalhesTitulo">Detalhes do encaminhamento</h2>
+        </div>
+        <button class="modal-close" id="btnFecharDetalhes" type="button" aria-label="Fechar">&times;</button>
+      </div>
+      <div class="details-list">
+        <div><label>PROFISSIONAL / SERVIÇO</label><p id="detalhesMedico">-</p></div>
+        <div><label>LOCAL</label><p id="detalhesLocal">-</p></div>
+        <div><label>STATUS</label><p id="detalhesStatus">-</p></div>
+        <div><label>DATA OU PRAZO</label><p id="detalhesData">-</p></div>
+      </div>
+      <div class="modal-actions"><button class="btn-solid-orange" id="btnFecharDetalhesRodape" type="button">Fechar</button></div>
+    </div>
   </div>
 
   <script src="app.js"></script>

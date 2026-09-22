@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-BR" data-theme="light">
+<html lang="pt-BR" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,16 +7,14 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
-  <!-- Navigation Lateral -->
   <aside class="sidebar">
     <div class="sidebar-top">
       <div class="logo-box">A</div>
       <nav class="sidebar-nav">
-        <button class="nav-item active" data-tab="tab-dashboard" title="Painel">
+        <button class="nav-item" data-tab="tab-dashboard" title="Painel Principal">
           <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
         </button>
-        <button class="nav-item" data-tab="tab-colaboradores" title="Colaboradores">
+        <button class="nav-item active" data-tab="tab-colaboradores" title="Colaboradores">
           <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
         </button>
         <button class="nav-item" data-tab="tab-exames" title="Exames Ocupacionais">
@@ -25,32 +23,56 @@
         <button class="nav-item" data-tab="tab-medicos" title="Médicos Indicados">
           <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
         </button>
+        <button class="nav-item" data-tab="tab-configuracoes" title="Configurações">
+          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
       </nav>
     </div>
-    <button class="nav-item" title="Configurações"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3"/></svg></button>
+    <button class="nav-item" title="Sair">
+      <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+    </button>
   </aside>
 
   <div class="wrapper">
     <header class="topbar">
       <div class="brand">
         <span class="brand-title">HealthData</span>
-        <span class="badge-ambulatorio">AMBULATÓRIO</span>
+        <span class="badge-admin">AMBULATÓRIO</span>
       </div>
       <div class="topbar-actions">
-        <button id="themeToggle" class="btn-theme-toggle">Escuro</button>
-        <div class="user-avatar">A</div>
+        <button id="themeToggle" class="btn-theme-toggle">
+          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+          <span id="themeText">Escuro</span>
+        </button>
+        <div class="notif-badge" id="btnGoAlerts">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+          <span class="count">2</span>
+        </div>
+        <div class="user-avatar">
+          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+        </div>
       </div>
     </header>
 
     <main class="main-container">
-      
-      <!-- ABA 1: PAINEL DE SAÚDE -->
-      <section id="tab-dashboard" class="tab-content active">
+      <section id="tab-dashboard" class="tab-content">
         <div class="stats-grid">
-          <div class="stat-card"><span class="stat-title">Colaboradores ativos</span><span class="stat-value text-green">148</span></div>
-          <div class="stat-card"><span class="stat-title">ASOs vencidos</span><span class="stat-value text-red">3</span></div>
-          <div class="stat-card"><span class="stat-title">Alertas pendentes</span><span class="stat-value text-yellow">7</span></div>
-          <div class="stat-card"><span class="stat-title">Exames este mês</span><span class="stat-value text-orange">34</span></div>
+          <div class="stat-card">
+            <span class="stat-title">Colaboradores ativos</span>
+            <span class="stat-value text-green">148</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-title">ASOs vencidos</span>
+            <span class="stat-value text-red">3</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-title">Alertas pendentes</span>
+            <span class="stat-value text-yellow">7</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-title">Exames este mês</span>
+            <span class="stat-value text-orange">34</span>
+          </div>
         </div>
 
         <div class="page-header mt-24">
@@ -58,10 +80,10 @@
             <h1>Painel de Saúde Ocupacional</h1>
             <p class="subtitle">Monitoramento de exames periódicos, encaminhamentos e conformidade NR-7</p>
           </div>
-          <button class="btn-primary-red">+ Nova publicação</button>
+          <button class="btn-primary-orange" id="btnOpenPublicacaoModal">+ Nova publicação</button>
         </div>
 
-        <div class="cards-grid">
+        <div class="cards-grid" id="publicacoesGrid">
           <div class="dash-card">
             <div class="card-img-wrapper">
               <img src="https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=600&auto=format&fit=crop&q=60" alt="Exames">
@@ -73,6 +95,7 @@
             </div>
             <div class="card-footer-info"><span>Ambulatório · Ago 2025 · 08h às 17h</span><button class="btn-outline">AGENDAR</button></div>
           </div>
+
           <div class="dash-card">
             <div class="card-img-wrapper">
               <img src="https://images.unsplash.com/photo-1584515979956-d9f6e5d09982?w=600&auto=format&fit=crop&q=60" alt="Saúde Mental">
@@ -84,6 +107,7 @@
             </div>
             <div class="card-footer-info"><span>Dra. Sabrina Fonseca · 11 a 15 ago</span><span class="badge-outline-teal">EM ANDAMENTO</span></div>
           </div>
+
           <div class="dash-card">
             <div class="card-img-wrapper">
               <img src="https://images.unsplash.com/photo-1622253692010-333f2da6031d?w=600&auto=format&fit=crop&q=60" alt="Ortopedia">
@@ -98,57 +122,269 @@
         </div>
       </section>
 
-      <!-- ABA 2: COLABORADORES DO AMBULATÓRIO -->
-      <section id="tab-colaboradores" class="tab-content">
+      <section id="tab-colaboradores" class="tab-content active">
         <div class="page-header">
           <div>
             <h1>Colaboradores</h1>
-            <p class="subtitle">8 colaboradores cadastrados</p>
+            <p class="subtitle">Gestão de fichas, exames e conformidade NR-7 · <span id="totalCount">0</span> cadastrados</p>
           </div>
-          <button class="btn-primary-red">+ Novo</button>
+          <button class="btn-primary-orange" id="btnOpenModal">+ Novo Colaborador</button>
         </div>
+
+        <div class="filter-bar">
+          <div class="search-box">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+            <input type="text" id="searchInput" placeholder="Nome ou matrícula...">
+          </div>
+          <select id="filterSetor" class="select-filter">
+            <option value="">Todos os Setores</option>
+            <option value="Linha de Produção 3">Linha de Produção 3</option>
+            <option value="SST">SST</option>
+            <option value="Embalagem">Embalagem</option>
+            <option value="Manutenção">Manutenção</option>
+            <option value="RH">RH</option>
+            <option value="Logística">Logística</option>
+            <option value="Ambulatório">Ambulatório</option>
+          </select>
+          <select id="filterStatus" class="select-filter">
+            <option value="">Todos os Status</option>
+            <option value="Ativo">Ativo</option>
+            <option value="Afastado">Afastado</option>
+            <option value="Pendente">Pendente</option>
+          </select>
+          <div class="alert-pill-btn">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+            <span><strong id="alertCount">2</strong> com ASO vencido</span>
+          </div>
+        </div>
+
         <div class="table-card">
           <table>
             <thead>
-              <tr><th>COLABORADOR</th><th>CARGO</th><th>SETOR</th><th>STATUS</th><th>ÚLTIMO EXAME</th><th>PRÓXIMO EXAME</th></tr>
+              <tr>
+                <th width="40">★</th>
+                <th>Colaborador</th>
+                <th>Setor / Turno</th>
+                <th>Status</th>
+                <th>ASO</th>
+                <th>Admissão</th>
+                <th width="80" style="text-align: right;">Ações</th>
+              </tr>
             </thead>
-            <tbody id="colabAmbulatorioBody"></tbody>
+            <tbody id="colabTableBody"></tbody>
           </table>
+          <div class="table-footer">
+            <span id="footerCountText">Mostrando colaboradores</span>
+          </div>
         </div>
       </section>
 
-      <!-- ABA 3: EXAMES -->
       <section id="tab-exames" class="tab-content">
         <div class="page-header">
           <div>
             <h1>Exames</h1>
             <p class="subtitle">Registros de exames ocupacionais e periódicos</p>
           </div>
-          <button class="btn-primary-red" onclick="openExameModal()">+ Novo Exame</button>
+          <button class="btn-primary-orange" id="btnOpenExameModal">+ Novo Exame</button>
         </div>
         <div class="table-card">
           <table>
             <thead>
-              <tr><th>ID</th><th>COLABORADOR</th><th>TIPO</th><th>DATA</th><th>RESULTADO</th><th>MÉDICO</th><th>OBSERVAÇÃO</th></tr>
+              <tr><th>ID</th><th>Colaborador</th><th>Tipo</th><th>Data</th><th>Resultado</th><th>Médico</th><th>Observação</th><th width="80" style="text-align: right;">Ações</th></tr>
             </thead>
             <tbody id="examesTableBody"></tbody>
           </table>
         </div>
       </section>
 
-      <!-- ABA 4: MÉDICOS INDICADOS -->
       <section id="tab-medicos" class="tab-content">
         <div class="page-header">
           <div>
             <h1>Médicos Indicados</h1>
             <p class="subtitle">Corpo clínico credenciado ao ambulatório</p>
           </div>
-          <button class="btn-primary-red">+ Credenciar</button>
+          <button class="btn-primary-orange" id="btnOpenMedicoModal">+ Credenciar</button>
         </div>
         <div class="cards-grid" id="medicosGrid"></div>
       </section>
 
+      <section id="tab-configuracoes" class="tab-content">
+        <div class="page-header center-header">
+          <div>
+            <h1>Configurações</h1>
+            <p class="subtitle">Preferências da conta e do sistema</p>
+          </div>
+        </div>
+
+        <div class="config-container">
+          <div class="content-card">
+            <h3 class="card-section-title">APARÊNCIA</h3>
+            <div class="config-row">
+              <div>
+                <strong>Tema escuro</strong>
+                <p class="colab-sub">Alterna entre fundo claro e escuro</p>
+              </div>
+              <label class="switch">
+                <input type="checkbox" id="configThemeToggle" checked>
+                <span class="slider"></span>
+              </label>
+            </div>
+            <div class="config-row">
+              <div>
+                <strong>Tamanho da fonte</strong>
+                <p class="colab-sub">Afeta textos em todo o painel</p>
+              </div>
+              <select class="select-filter">
+                <option>Normal</option>
+                <option>Pequeno</option>
+                <option>Grande</option>
+              </select>
+            </div>
+            <div class="config-row">
+              <div>
+                <strong>Idioma</strong>
+                <p class="colab-sub">Idioma da interface</p>
+              </div>
+              <select class="select-filter">
+                <option>Português (Brasil)</option>
+                <option>English</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="content-card mt-20">
+            <h3 class="card-section-title">NOTIFICAÇÕES</h3>
+            <div class="config-row">
+              <div>
+                <strong>E-mail</strong>
+                <p class="colab-sub">Receber avisos por e-mail</p>
+              </div>
+              <label class="switch"><input type="checkbox" checked><span class="slider"></span></label>
+            </div>
+            <div class="config-row">
+              <div>
+                <strong>Notificações push</strong>
+                <p class="colab-sub">Alertas no navegador em tempo real</p>
+              </div>
+              <label class="switch"><input type="checkbox" checked><span class="slider"></span></label>
+            </div>
+            <div class="config-row">
+              <div>
+                <strong>Lembretes de exames</strong>
+                <p class="colab-sub">Aviso antecipado de exames periódicos</p>
+              </div>
+              <label class="switch"><input type="checkbox" checked><span class="slider"></span></label>
+            </div>
+          </div>
+        </div>
+      </section>
     </main>
+  </div>
+
+  <div class="modal-overlay" id="modalForm">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="modalTitle">Cadastrar Colaborador</h3>
+        <button class="btn-close-modal" id="btnCloseModal" type="button">&times;</button>
+      </div>
+      <form id="colabForm">
+        <input type="hidden" id="colabId">
+        <div class="form-grid">
+          <div class="form-group"><label>Nome Completo</label><input type="text" id="nome" required></div>
+          <div class="form-group"><label>Matrícula</label><input type="text" id="matricula" required></div>
+          <div class="form-group"><label>Cargo</label><input type="text" id="cargo" required></div>
+          <div class="form-group"><label>Setor</label><input type="text" id="setor" required></div>
+          <div class="form-group"><label>Turno</label><input type="text" id="turno" required></div>
+          <div class="form-group">
+            <label>Status do Colaborador</label>
+            <select id="status"><option value="Ativo">Ativo</option><option value="Afastado">Afastado</option><option value="Pendente">Pendente</option></select>
+          </div>
+          <div class="form-group">
+            <label>Situação do ASO</label>
+            <select id="aso_status"><option value="Em dia">Em dia</option><option value="A vencer">A vencer</option><option value="Vencido">Vencido</option></select>
+          </div>
+          <div class="form-group"><label>Data de Admissão</label><input type="text" id="admissao" placeholder="MM/AAAA"></div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" id="btnCancelModal">Cancelar</button>
+          <button type="submit" class="btn-primary-orange">Salvar Alterações</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="exameModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="exameModalTitle">Cadastrar Exame</h3>
+        <button class="btn-close-modal" id="btnCloseExameModal" type="button">&times;</button>
+      </div>
+      <form id="exameForm">
+        <input type="hidden" id="exameId">
+        <div class="form-grid">
+          <div class="form-group"><label>ID</label><input type="text" id="exameIdInput"></div>
+          <div class="form-group"><label>Colaborador</label><input type="text" id="exameColaborador" required></div>
+          <div class="form-group"><label>Tipo</label><input type="text" id="exameTipo" required></div>
+          <div class="form-group"><label>Data</label><input type="date" id="exameData" required></div>
+          <div class="form-group"><label>Resultado</label><select id="exameResultado"><option value="Normal">Normal</option><option value="Alterado">Alterado</option><option value="Pendente">Pendente</option><option value="Em Análise">Em Análise</option></select></div>
+          <div class="form-group"><label>Médico</label><input type="text" id="exameMedico"></div>
+        </div>
+        <div class="form-group"><label>Observação</label><input type="text" id="exameObservacao"></div>
+        <div class="modal-actions mt-20">
+          <button type="button" class="btn-secondary" id="btnCancelExameModal">Cancelar</button>
+          <button type="submit" class="btn-primary-orange">Salvar Exame</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="medicoModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3 id="medicoModalTitle">Credenciar Médico</h3>
+        <button class="btn-close-modal" id="btnCloseMedicoModal" type="button">&times;</button>
+      </div>
+      <form id="medicoForm">
+        <input type="hidden" id="medicoId">
+        <div class="form-grid">
+          <div class="form-group"><label>Nome</label><input type="text" id="medicoNome" required></div>
+          <div class="form-group"><label>Especialidade</label><input type="text" id="medicoEspecialidade" required></div>
+          <div class="form-group"><label>CRM</label><input type="text" id="medicoCrm" required></div>
+          <div class="form-group"><label>Telefone</label><input type="text" id="medicoTelefone"></div>
+          <div class="form-group"><label>E-mail</label><input type="email" id="medicoEmail"></div>
+          <div class="form-group"><label>Status</label><select id="medicoStatus"><option value="Disponível">Disponível</option><option value="Ocupado">Ocupado</option><option value="Indisponível">Indisponível</option></select></div>
+          <div class="form-group"><label>Atendimentos</label><input type="number" id="medicoAtendimentos" value="0"></div>
+          <div class="form-group"><label>Avaliação</label><input type="number" step="0.1" id="medicoAvaliacao" value="5"></div>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" id="btnCancelMedicoModal">Cancelar</button>
+          <button type="submit" class="btn-primary-orange">Salvar Médico</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="publicacaoModal">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>Nova publicação</h3>
+        <button class="btn-close-modal" id="btnClosePublicacaoModal" type="button">&times;</button>
+      </div>
+      <form id="publicacaoForm">
+        <div class="form-grid">
+          <div class="form-group"><label>Título</label><input type="text" id="publicacaoTitulo" required></div>
+          <div class="form-group"><label>Categoria</label><select id="publicacaoCategoria" required><option value="CAMPANHA">CAMPANHA</option><option value="PERIÓDICO">PERIÓDICO</option><option value="ENCAMINHAMENTO">ENCAMINHAMENTO</option><option value="AVISO">AVISO</option></select></div>
+          <div class="form-group"><label>Informação do rodapé</label><input type="text" id="publicacaoInformacao" placeholder="Ex.: Ambulatório · 22/09 · 08h às 17h"></div>
+          <div class="form-group"><label>Status</label><select id="publicacaoStatus"><option value="EM ANDAMENTO">EM ANDAMENTO</option><option value="INSCRIÇÃO OBRIGATÓRIA">INSCRIÇÃO OBRIGATÓRIA</option><option value="VOLUNTÁRIO">VOLUNTÁRIO</option><option value="DISPONÍVEL">DISPONÍVEL</option></select></div>
+        </div>
+        <div class="form-group"><label>Descrição</label><textarea id="publicacaoDescricao" rows="4" required></textarea></div>
+        <div class="form-group publicacao-upload"><label>Foto da publicação</label><input type="file" id="publicacaoImagem" accept="image/png,image/jpeg,image/webp"><span class="upload-hint">PNG, JPG ou WEBP · até 5 MB</span><img id="publicacaoPreview" class="publicacao-preview" alt="Prévia da foto"></div>
+        <div class="modal-actions mt-20">
+          <button type="button" class="btn-secondary" id="btnCancelPublicacaoModal">Cancelar</button>
+          <button type="submit" class="btn-primary-orange">Publicar</button>
+        </div>
+      </form>
+    </div>
   </div>
 
   <script src="app.js"></script>

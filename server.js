@@ -4,8 +4,9 @@ const path = require('path');
 
 const app = express();
 const PORT = 3000;
+const dbPath = path.resolve(__dirname, 'database.db');
 
-app.use(express.json());
+app.use(express.json({ limit: '8mb' }));
 app.use(express.urlencoded({ extended: true }));
 
 // Serve as duas aplicações de forma totalmente independente
@@ -15,14 +16,13 @@ app.use('/ambulatorio', express.static(path.join(__dirname, 'public/ambulatorio'
 // Redireciona a raiz para o ambulatório por padrão
 app.get('/', (req, res) => res.redirect('/ambulatorio'));
 
-const db = new sqlite3.Database('./database.db', (err) => {
+const db = new sqlite3.Database(dbPath, (err) => {
   if (err) console.error("Erro no SQLite:", err.message);
-  else console.log("Conectado ao SQLite.");
+  else console.log(`Conectado ao SQLite em: ${dbPath}`);
 });
 
 // Inicialização das Tabelas do Banco de Dados
 db.serialize(() => {
-  // Tabela de Colaboradores (Compartilhada)
   db.run(`
     CREATE TABLE IF NOT EXISTS colaboradores (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -30,11 +30,38 @@ db.serialize(() => {
       matricula TEXT NOT NULL,
       cargo TEXT,
       setor TEXT,
+      turno TEXT,
       status TEXT DEFAULT 'Ativo',
+      aso_status TEXT DEFAULT 'Em dia',
+      admissao TEXT,
+      favorito INTEGER DEFAULT 0,
       ultimo_exame TEXT,
       proximo_exame TEXT
     )
   `);
+
+  db.all('PRAGMA table_info(colaboradores)', [], (err, rows) => {
+    if (err) {
+      console.error('Erro ao verificar schema de colaboradores:', err.message);
+      return;
+    }
+
+    const existingColumns = new Set((rows || []).map((row) => row.name));
+    const extraColumns = [
+      { name: 'turno', definition: 'TEXT' },
+      { name: 'aso_status', definition: "TEXT DEFAULT 'Em dia'" },
+      { name: 'admissao', definition: 'TEXT' },
+      { name: 'favorito', definition: 'INTEGER DEFAULT 0' },
+      { name: 'alergias', definition: 'TEXT DEFAULT \'\'' },
+      { name: 'comorbidades', definition: 'TEXT DEFAULT \'\'' }
+    ];
+
+    extraColumns.forEach(({ name, definition }) => {
+      if (!existingColumns.has(name)) {
+        db.run(`ALTER TABLE colaboradores ADD COLUMN ${name} ${definition}`);
+      }
+    });
+  });
 
   // Tabela de Exames (Exclusivo Ambulatório)
   db.run(`
@@ -63,6 +90,77 @@ db.serialize(() => {
       avaliacao REAL DEFAULT 5.0
     )
   `);
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS publicacoes (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      titulo TEXT NOT NULL,
+      descricao TEXT NOT NULL,
+      categoria TEXT NOT NULL,
+      informacao TEXT,
+      status TEXT DEFAULT 'EM ANDAMENTO',
+      imagem TEXT,
+      criado_em TEXT DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+
+  db.get('SELECT COUNT(*) AS total FROM colaboradores', [], (err, row) => {
+    if (err) return;
+    if (row && Number(row.total) === 0) {
+      const seedData = [
+        ['Maria Fernandes', '12345', 'Op. de Máquina', 'Linha de Produção 3', 'Turno A', 'Ativo', 'A vencer', '03/2011', 0],
+        ['Ana Lima', '12347', 'Analista SST', 'SST', 'Turno B', 'Ativo', 'Vencido', '07/2018', 1],
+        ['Felipe Alves', '12350', 'Auxiliar de Manutenção', 'Manutenção', 'Turno C', 'Pendente', 'Em dia', '11/2020', 0],
+        ['Carlos Souza', '12352', 'Operador Logístico', 'Logística', 'Turno A', 'Ativo', 'Em dia', '05/2019', 0]
+      ];
+
+      const insert = db.prepare(`
+        INSERT INTO colaboradores (nome, matricula, cargo, setor, turno, status, aso_status, admissao, favorito)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `);
+
+      seedData.forEach((item) => insert.run(item));
+      insert.finalize();
+    }
+  });
+
+  db.get('SELECT COUNT(*) AS total FROM medicos', [], (err, row) => {
+    if (err) return;
+    if (row && Number(row.total) === 0) {
+      const medicos = [
+        ['Dra. Sabrina Fonseca', 'Cardiologia', 'CRM-SP 125486', '(11) 99988-1122', 'sabrina@saude.com', 'Disponível', 18, 4.9],
+        ['Dr. André Nogueira', 'Ortopedia', 'CRM-SP 984521', '(11) 98877-4312', 'andre@saude.com', 'Disponível', 25, 4.8],
+        ['Dr. Roberto Lima', 'Clínica Médica', 'CRM-SP 774512', '(11) 99712-9901', 'roberto@saude.com', 'Ocupado', 10, 4.7]
+      ];
+
+      const insert = db.prepare(`
+        INSERT INTO medicos (nome, especialidade, crm, telefone, email, status, atendimentos, avaliacao)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      `);
+
+      medicos.forEach((item) => insert.run(item));
+      insert.finalize();
+    }
+  });
+
+  db.get('SELECT COUNT(*) AS total FROM exames', [], (err, row) => {
+    if (err) return;
+    if (row && Number(row.total) === 0) {
+      const exames = [
+        ['EX-1001', 'Maria Fernandes', 'Admissional', '2026-07-15', 'Normal', 'Dra. Sabrina Fonseca', 'Sem restrições'],
+        ['EX-1002', 'Ana Lima', 'Periódico', '2026-07-22', 'Alterado', 'Dr. André Nogueira', 'Acompanhamento cardiológico recomendado'],
+        ['EX-1003', 'Felipe Alves', 'Retorno', '2026-08-02', 'Em Análise', 'Dr. Roberto Lima', 'Solicitado exame complementar']
+      ];
+
+      const insert = db.prepare(`
+        INSERT INTO exames (id, colaborador, tipo, data, resultado, medico, observacao)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+      `);
+
+      exames.forEach((item) => insert.run(item));
+      insert.finalize();
+    }
+  });
 });
 
 // ==========================================
@@ -113,11 +211,173 @@ app.post('/api/ambulatorio/medicos', (req, res) => {
   });
 });
 
+app.put('/api/ambulatorio/medicos/:id', (req, res) => {
+  const { id } = req.params;
+  const { nome, especialidade, crm, telefone, email, status, atendimentos, avaliacao } = req.body;
+  const query = `
+    UPDATE medicos
+    SET nome = ?, especialidade = ?, crm = ?, telefone = ?, email = ?, status = ?, atendimentos = ?, avaliacao = ?
+    WHERE id = ?
+  `;
+
+  db.run(query, [nome, especialidade, crm, telefone, email, status || 'Disponível', atendimentos || 0, avaliacao || 5.0, id], function(err) {
+    if (err) return res.status(500).json({ error: err.message });
+    if (this.changes === 0) return res.status(404).json({ error: 'Médico não encontrado' });
+    res.json({ id: Number(id), nome, especialidade, crm, telefone, email, status: status || 'Disponível', atendimentos: atendimentos || 0, avaliacao: avaliacao || 5.0 });
+  });
+});
+
+app.delete('/api/ambulatorio/medicos/:id', (req, res) => {
+  const { id } = req.params;
+  db.run('DELETE FROM medicos WHERE id = ?', [id], function(err) {
+    if (err) return res.status(500).json({ error: err.message });
+    if (this.changes === 0) return res.status(404).json({ error: 'Médico não encontrado' });
+    res.json({ ok: true, deletedId: Number(id) });
+  });
+});
+
+// Exames: Atualizar exame
+app.put('/api/ambulatorio/exames/:id', (req, res) => {
+  const { id } = req.params;
+  const { colaborador, tipo, data, resultado, medico, observacao } = req.body;
+  const query = `
+    UPDATE exames
+    SET colaborador = ?, tipo = ?, data = ?, resultado = ?, medico = ?, observacao = ?
+    WHERE id = ?
+  `;
+
+  db.run(query, [colaborador, tipo, data, resultado, medico, observacao, id], function(err) {
+    if (err) return res.status(500).json({ error: err.message });
+    if (this.changes === 0) return res.status(404).json({ error: 'Exame não encontrado' });
+    res.json({ id, colaborador, tipo, data, resultado, medico, observacao });
+  });
+});
+
+app.delete('/api/ambulatorio/exames/:id', (req, res) => {
+  const { id } = req.params;
+  db.run('DELETE FROM exames WHERE id = ?', [id], function(err) {
+    if (err) return res.status(500).json({ error: err.message });
+    if (this.changes === 0) return res.status(404).json({ error: 'Exame não encontrado' });
+    res.json({ ok: true, deletedId: id });
+  });
+});
+
 // Colaboradores (Leitura para a tabela do ambulatório)
 app.get('/api/ambulatorio/colaboradores', (req, res) => {
   db.all('SELECT * FROM colaboradores', [], (err, rows) => {
     if (err) return res.status(500).json({ error: err.message });
     res.json(rows);
+  });
+});
+
+// ==========================================
+// ROTAS DA API: GESTÃO DE COLABORADORES (ADMIN)
+// ==========================================
+app.get('/api/colaboradores', (req, res) => {
+  db.all('SELECT * FROM colaboradores ORDER BY id DESC', [], (err, rows) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(rows);
+  });
+});
+
+app.get('/api/colaboradores/:id', (req, res) => {
+  const { id } = req.params;
+
+  db.get('SELECT * FROM colaboradores WHERE id = ?', [id], (err, row) => {
+    if (err) return res.status(500).json({ error: err.message });
+    if (!row) return res.status(404).json({ error: 'Colaborador não encontrado' });
+    res.json(row);
+  });
+});
+
+app.post('/api/colaboradores', (req, res) => {
+  const payload = req.body || {};
+  const nome = (payload.nome || '').trim();
+  const matricula = (payload.matricula || '').trim();
+
+  if (!nome || !matricula) {
+    return res.status(400).json({ error: 'Nome e matrícula são obrigatórios.' });
+  }
+
+  const query = `
+    INSERT INTO colaboradores (nome, matricula, cargo, setor, turno, status, aso_status, admissao, favorito)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `;
+
+  const values = [
+    nome,
+    matricula,
+    payload.cargo || '',
+    payload.setor || '',
+    payload.turno || '',
+    payload.status || 'Ativo',
+    payload.aso_status || 'Em dia',
+    payload.admissao || '',
+    payload.favorito ? 1 : 0
+  ];
+
+  db.run(query, values, function (err) {
+    if (err) return res.status(500).json({ error: err.message });
+
+    db.get('SELECT * FROM colaboradores WHERE id = ?', [this.lastID], (selectErr, row) => {
+      if (selectErr) return res.status(500).json({ error: selectErr.message });
+      res.status(201).json(row);
+    });
+  });
+});
+
+app.put('/api/colaboradores/:id', (req, res) => {
+  const { id } = req.params;
+  const payload = req.body || {};
+
+  const query = `
+    UPDATE colaboradores
+    SET nome = ?, matricula = ?, cargo = ?, setor = ?, turno = ?, status = ?, aso_status = ?, admissao = ?, favorito = ?
+    WHERE id = ?
+  `;
+
+  const values = [
+    (payload.nome || '').trim(),
+    (payload.matricula || '').trim(),
+    payload.cargo || '',
+    payload.setor || '',
+    payload.turno || '',
+    payload.status || 'Ativo',
+    payload.aso_status || 'Em dia',
+    payload.admissao || '',
+    payload.favorito ? 1 : 0,
+    id
+  ];
+
+  db.run(query, values, function (err) {
+    if (err) return res.status(500).json({ error: err.message });
+    if (this.changes === 0) return res.status(404).json({ error: 'Colaborador não encontrado' });
+
+    db.get('SELECT * FROM colaboradores WHERE id = ?', [id], (selectErr, row) => {
+      if (selectErr) return res.status(500).json({ error: selectErr.message });
+      res.json(row);
+    });
+  });
+});
+
+app.patch('/api/colaboradores/:id/favorito', (req, res) => {
+  const { id } = req.params;
+  const { favorito } = req.body || {};
+
+  db.run('UPDATE colaboradores SET favorito = ? WHERE id = ?', [favorito ? 1 : 0, id], function (err) {
+    if (err) return res.status(500).json({ error: err.message });
+    if (this.changes === 0) return res.status(404).json({ error: 'Colaborador não encontrado' });
+    res.json({ ok: true, favorito: !!favorito });
+  });
+});
+
+app.delete('/api/colaboradores/:id', (req, res) => {
+  const { id } = req.params;
+
+  db.run('DELETE FROM colaboradores WHERE id = ?', [id], function (err) {
+    if (err) return res.status(500).json({ error: err.message });
+    if (this.changes === 0) return res.status(404).json({ error: 'Colaborador não encontrado' });
+    res.json({ ok: true, deletedId: Number(id) });
   });
 });
 
@@ -131,26 +391,53 @@ app.listen(PORT, () => {
 app.use('/funcionario', express.static(path.join(__dirname, 'public/funcionario')));
 
 // API: Dados do Perfil do Funcionário Logado (Exemplo: Maria Fernandes - ID 1)
-app.get('/api/funcionario/perfil', (req, res) => {
-  const perfil = {
-    nome: "Maria Fernandes",
-    matricula: "12345",
-    cargo: "Op. de Máquina",
-    setor: "Linha de Produção 3",
-    turno: "Turno A",
-    status: "Ativo",
+function montarPerfil(row) {
+  const alergias = (row?.alergias || 'Penicilina — Reação anafilática confirmada\nAmendoim — Intolerância documentada')
+    .split('\n').map(item => item.trim()).filter(Boolean);
+  const comorbidades = (row?.comorbidades || '')
+    .split('\n').map(item => item.trim()).filter(Boolean);
+
+  return {
+    nome: row?.nome || 'Maria Fernandes',
+    matricula: row?.matricula || '12345',
+    cargo: row?.cargo || 'Op. de Máquina',
+    setor: row?.setor || 'Linha de Produção 3',
+    turno: row?.turno || 'Turno A',
+    status: row?.status || 'Ativo',
     idade: 62,
-    tipoSanguineo: "O+",
-    admissao: "03/2011",
-    regime: "CLT - Integral",
+    tipoSanguineo: 'O+',
+    admissao: row?.admissao || '03/2011',
+    regime: 'CLT - Integral',
+    alergias,
+    comorbidades,
     condicoes: [
-      { tipo: "Alergia", desc: "Penicilina — Reação anafilática confirmada", cor: "red" },
-      { tipo: "Alergia", desc: "Amendoim — Intolerância documentada", cor: "red" },
-      { tipo: "PCD", desc: "Mobilidade — Laudo INSS — Portaria 2024", cor: "teal" },
-      { tipo: "Doadora", desc: "Doadora de Sangue — Tipo O+ - Última doação 04/2026", cor: "orange" }
+      ...alergias.map(desc => ({ tipo: 'Alergia', desc, cor: 'red' })),
+      ...comorbidades.map(desc => ({ tipo: 'Comorbidade', desc, cor: 'orange' })),
+      { tipo: 'PCD', desc: 'Mobilidade — Laudo INSS — Portaria 2024', cor: 'teal' },
+      { tipo: 'Doadora', desc: 'Doadora de Sangue — Tipo O+ - Última doação 04/2026', cor: 'orange' }
     ]
   };
-  res.json(perfil);
+}
+
+app.get('/api/funcionario/perfil', (req, res) => {
+  db.get('SELECT * FROM colaboradores WHERE id = 1', [], (err, row) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(montarPerfil(row));
+  });
+});
+
+app.put('/api/funcionario/perfil', (req, res) => {
+  const alergias = String(req.body?.alergias || '').split('\n').map(item => item.trim()).filter(Boolean).join('\n');
+  const comorbidades = String(req.body?.comorbidades || '').split('\n').map(item => item.trim()).filter(Boolean).join('\n');
+
+  db.run('UPDATE colaboradores SET alergias = ?, comorbidades = ? WHERE id = 1', [alergias, comorbidades], function (err) {
+    if (err) return res.status(500).json({ error: err.message });
+    if (this.changes === 0) return res.status(404).json({ error: 'Colaborador não encontrado' });
+    db.get('SELECT * FROM colaboradores WHERE id = 1', [], (selectErr, row) => {
+      if (selectErr) return res.status(500).json({ error: selectErr.message });
+      res.json(montarPerfil(row));
+    });
+  });
 });
 
 // API: Alertas e Encaminhamentos
@@ -171,4 +458,46 @@ app.get('/api/funcionario/alertas', (req, res) => {
     ]
   };
   res.json(alertas);
+});
+
+// ==========================================
+// ROTAS DA API: PUBLICAÇÕES DO AMBULATÓRIO
+// ==========================================
+app.get('/api/ambulatorio/publicacoes', (req, res) => {
+  db.all('SELECT * FROM publicacoes ORDER BY id DESC', [], (err, rows) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(rows);
+  });
+});
+
+app.post('/api/ambulatorio/publicacoes', (req, res) => {
+  const payload = req.body || {};
+  const titulo = (payload.titulo || '').trim();
+  const descricao = (payload.descricao || '').trim();
+  const categoria = (payload.categoria || '').trim();
+
+  if (!titulo || !descricao || !categoria) {
+    return res.status(400).json({ error: 'Título, descrição e categoria são obrigatórios.' });
+  }
+
+  const query = `
+    INSERT INTO publicacoes (titulo, descricao, categoria, informacao, status, imagem)
+    VALUES (?, ?, ?, ?, ?, ?)
+  `;
+  const values = [
+    titulo,
+    descricao,
+    categoria,
+    (payload.informacao || '').trim(),
+    payload.status || 'EM ANDAMENTO',
+    payload.imagem || ''
+  ];
+
+  db.run(query, values, function (err) {
+    if (err) return res.status(500).json({ error: err.message });
+    db.get('SELECT * FROM publicacoes WHERE id = ?', [this.lastID], (selectErr, row) => {
+      if (selectErr) return res.status(500).json({ error: selectErr.message });
+      res.status(201).json(row);
+    });
+  });
 });

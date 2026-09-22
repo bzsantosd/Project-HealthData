@@ -4,6 +4,37 @@
 const navItems = document.querySelectorAll('.nav-item[data-tab]');
 const tabContents = document.querySelectorAll('.tab-content');
 
+const themeToggle = document.getElementById('themeToggle');
+
+themeToggle?.addEventListener('click', () => {
+  const isLight = document.documentElement.getAttribute('data-theme') !== 'light';
+  document.documentElement.setAttribute('data-theme', isLight ? 'light' : 'dark');
+  themeToggle.textContent = isLight ? 'Escuro' : 'Claro';
+});
+
+function escapeHtml(value) {
+  return String(value || '').replace(/[&<>'"]/g, character => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+  })[character]);
+}
+
+let perfilAtual = null;
+let encaminhamentosAtuais = [];
+
+function renderizarCondicoes(condicoes) {
+  const sideCard = document.getElementById('condicoesCard');
+  if (!sideCard) return;
+
+  const lista = (condicoes || []).map(cond => `
+    <div class="condition-item ${escapeHtml(cond.cor)}">
+      <strong>${escapeHtml(cond.tipo)}</strong>
+      <p>${escapeHtml(cond.desc)}</p>
+    </div>
+  `).join('');
+
+  sideCard.innerHTML = `<h3>CONDIÇÕES E RESTRIÇÕES</h3>${lista || '<p class="empty-state">Nenhuma condição informada.</p>'}`;
+}
+
 navItems.forEach(item => {
   item.addEventListener('click', () => {
     const tabId = item.getAttribute('data-tab');
@@ -30,34 +61,137 @@ async function carregarPerfil() {
     if (!response.ok) throw new Error("Erro ao buscar perfil");
 
     const data = await response.json();
+    perfilAtual = data;
 
-    // Atualiza cabeçalho do perfil
-    const profileHeader = document.querySelector('.profile-header');
-    if (profileHeader) {
-      profileHeader.querySelector('h2').textContent = data.nome;
-      profileHeader.querySelector('p').textContent = `${data.cargo} ·${data.setor}`;
-      
-      const badgeStatus = profileHeader.querySelector('.badge-status-green');
-      if (badgeStatus) {
-        badgeStatus.textContent = `${data.turno} —${data.status}`;
-      }
-    }
+    const setText = (id, value) => {
+      const element = document.getElementById(id);
+      if (element) element.textContent = value || '-';
+    };
 
-    // Renderiza a lista de Condições e Restrições na coluna lateral
-    const sideCard = document.querySelector('.side-card');
-    if (sideCard && data.condicoes) {
-      const condicoesHTML = data.condicoes.map(cond => `
-        <div class="condition-item ${cond.cor}">
-          <strong>${cond.tipo}</strong>
-          <p>${cond.desc}</p>
-        </div>
-      `).join('');
+    setText('perfilSubtitle', `${data.nome} · Matrícula ${data.matricula}`);
+    setText('perfilNome', data.nome);
+    setText('perfilResumo', `${data.cargo} · ${data.setor}`);
+    setText('perfilStatus', `${data.turno} — ${data.status}`);
+    setText('perfilNomeCompleto', data.nome);
+    setText('perfilIdade', data.idade ? `${data.idade} anos` : '-');
+    setText('perfilSangue', data.tipoSanguineo);
+    setText('perfilMatricula', data.matricula);
+    setText('perfilAdmissao', data.admissao);
+    setText('perfilCargo', data.cargo);
+    setText('perfilSetor', data.setor);
+    setText('perfilTurno', data.turno);
+    setText('perfilRegime', data.regime);
 
-      sideCard.innerHTML = `<h3>CONDIÇÕES E RESTRIÇÕES</h3>` + condicoesHTML;
-    }
+    renderizarCondicoes(data.condicoes);
 
   } catch (error) {
     console.error("Erro ao carregar o perfil:", error);
+  }
+}
+
+const perfilModal = document.getElementById('perfilModal');
+const perfilForm = document.getElementById('perfilForm');
+
+function fecharPerfilModal() {
+  perfilModal?.classList.remove('active');
+  perfilModal?.setAttribute('aria-hidden', 'true');
+}
+
+document.getElementById('btnEditarPerfil')?.addEventListener('click', () => {
+  document.getElementById('perfilAlergias').value = (perfilAtual?.alergias || []).join('\n');
+  document.getElementById('perfilComorbidades').value = (perfilAtual?.comorbidades || []).join('\n');
+  perfilModal?.classList.add('active');
+  perfilModal?.setAttribute('aria-hidden', 'false');
+});
+document.getElementById('btnFecharPerfil')?.addEventListener('click', fecharPerfilModal);
+document.getElementById('btnCancelarPerfil')?.addEventListener('click', fecharPerfilModal);
+
+perfilForm?.addEventListener('submit', async event => {
+  event.preventDefault();
+  const payload = {
+    alergias: document.getElementById('perfilAlergias').value,
+    comorbidades: document.getElementById('perfilComorbidades').value
+  };
+
+  try {
+    const response = await fetch('/api/funcionario/perfil', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(result.error || `Erro HTTP ${response.status}`);
+    perfilAtual = result;
+    renderizarCondicoes(result.condicoes);
+    fecharPerfilModal();
+  } catch (error) {
+    alert(`Não foi possível salvar o perfil: ${error.message}`);
+    console.error('Erro ao atualizar perfil:', error);
+  }
+});
+
+async function carregarPublicacoes() {
+  try {
+    const response = await fetch('/api/ambulatorio/publicacoes');
+    if (!response.ok) throw new Error('Erro ao buscar publicações');
+    const publicacoes = await response.json();
+    const grid = document.getElementById('publicacoesGrid');
+    if (!grid || !Array.isArray(publicacoes)) return;
+
+    publicacoes.forEach(publicacao => {
+      const card = document.createElement('article');
+      card.className = 'dash-card employee-publication-card';
+      const imagem = publicacao.imagem || 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=600&auto=format&fit=crop&q=60';
+      card.innerHTML = `
+        <div class="card-img-wrapper">
+          <img src="${escapeHtml(imagem)}" alt="${escapeHtml(publicacao.titulo)}">
+          <span class="tag-floating tag-orange">${escapeHtml(publicacao.categoria)}</span>
+        </div>
+        <div class="card-body">
+          <h3>${escapeHtml(publicacao.titulo)}</h3>
+          <p>${escapeHtml(publicacao.descricao)}</p>
+        </div>
+        <div class="card-footer-info"><span>${escapeHtml(publicacao.informacao || 'Publicado pelo ambulatório')}</span><span class="badge-outline-teal">${escapeHtml(publicacao.status)}</span></div>
+      `;
+      grid.appendChild(card);
+    });
+  } catch (error) {
+    console.error('Erro ao carregar publicações:', error);
+  }
+}
+
+async function carregarMedicosCredenciados() {
+  const directory = document.getElementById('doctorDirectory');
+  if (!directory) return;
+
+  try {
+    const response = await fetch('/api/ambulatorio/medicos');
+    if (!response.ok) throw new Error('Erro ao buscar médicos credenciados');
+    const medicos = await response.json();
+
+    if (!Array.isArray(medicos) || medicos.length === 0) {
+      directory.innerHTML = '<p class="directory-empty">Nenhum médico credenciado disponível no momento.</p>';
+      return;
+    }
+
+    directory.innerHTML = medicos.map(medico => {
+      const iniciais = (medico.nome || 'MD').split(' ').map(nome => nome[0]).join('').slice(0, 2).toUpperCase();
+      const statusDisponivel = medico.status === 'Disponível';
+      return `
+        <article class="doctor-directory-card">
+          <div class="doctor-avatar">${escapeHtml(iniciais)}</div>
+          <div class="doctor-info">
+            <div class="doctor-name-row"><h3>${escapeHtml(medico.nome)}</h3><span class="doctor-status ${statusDisponivel ? 'is-available' : 'is-busy'}">${escapeHtml(medico.status || 'Indisponível')}</span></div>
+            <p class="doctor-specialty">${escapeHtml(medico.especialidade)}</p>
+            <p class="doctor-contact">CRM ${escapeHtml(medico.crm)} · ${escapeHtml(medico.telefone || 'Contato pelo ambulatório')}</p>
+          </div>
+          <div class="doctor-rating">★ ${Number(medico.avaliacao || 0).toFixed(1)}<small>${Number(medico.atendimentos || 0)} atendimentos</small></div>
+        </article>
+      `;
+    }).join('');
+  } catch (error) {
+    directory.innerHTML = '<p class="directory-empty">Não foi possível carregar a rede credenciada.</p>';
+    console.error('Erro ao carregar médicos do funcionário:', error);
   }
 }
 
@@ -88,14 +222,15 @@ async function carregarAlertas() {
     // Preenche a lista de Encaminhamentos
     const encaminhamentosGrid = document.querySelector('.encaminhamentos-grid');
     if (encaminhamentosGrid && data.encaminhamentos) {
-      encaminhamentosGrid.innerHTML = data.encaminhamentos.map(enc => `
+      encaminhamentosAtuais = data.encaminhamentos;
+      encaminhamentosGrid.innerHTML = data.encaminhamentos.map((enc, index) => `
         <div class="enc-card border-${enc.cor}">
-          <span class="enc-tag">${enc.especialidade}</span>
-          <h3>${enc.medico}</h3>
-          <p>${enc.local}</p>
+          <span class="enc-tag">${escapeHtml(enc.especialidade)}</span>
+          <h3>${escapeHtml(enc.medico)}</h3>
+          <p>${escapeHtml(enc.local)}</p>
           <div class="enc-footer">
-            <span class="badge-status-${enc.cor}">${enc.status}</span>
-            <a href="#">Detalhes →</a>
+            <span class="badge-status-${escapeHtml(enc.cor)}">${escapeHtml(enc.status)}</span>
+            <button class="detail-link" type="button" data-detail-index="${index}">Detalhes →</button>
           </div>
         </div>
       `).join('');
@@ -106,10 +241,50 @@ async function carregarAlertas() {
   }
 }
 
+const detalhesModal = document.getElementById('detalhesModal');
+
+function fecharDetalhes() {
+  detalhesModal?.classList.remove('active');
+  detalhesModal?.setAttribute('aria-hidden', 'true');
+}
+
+function abrirDetalhes(index) {
+  const encaminhamento = encaminhamentosAtuais[index];
+  if (!encaminhamento) return;
+
+  document.getElementById('detalhesEspecialidade').textContent = encaminhamento.especialidade || 'ENCAMINHAMENTO';
+  document.getElementById('detalhesTitulo').textContent = encaminhamento.medico || 'Detalhes do encaminhamento';
+  document.getElementById('detalhesMedico').textContent = encaminhamento.medico || '-';
+  document.getElementById('detalhesLocal').textContent = encaminhamento.local || '-';
+  document.getElementById('detalhesStatus').textContent = encaminhamento.status || '-';
+  document.getElementById('detalhesData').textContent = encaminhamento.data || 'Data não informada';
+  detalhesModal?.classList.add('active');
+  detalhesModal?.setAttribute('aria-hidden', 'false');
+}
+
+document.querySelector('.encaminhamentos-grid')?.addEventListener('click', event => {
+  const button = event.target.closest('.detail-link');
+  if (button) abrirDetalhes(Number(button.dataset.detailIndex));
+});
+document.getElementById('btnFecharDetalhes')?.addEventListener('click', fecharDetalhes);
+document.getElementById('btnFecharDetalhesRodape')?.addEventListener('click', fecharDetalhes);
+
+document.getElementById('btnVerLaudo')?.addEventListener('click', () => {
+  alert('O laudo está disponível para consulta com o ambulatório.');
+});
+
+document.getElementById('btnAgendar')?.addEventListener('click', (event) => {
+  const button = event.currentTarget;
+  button.textContent = 'REAVALIAÇÃO SOLICITADA';
+  button.disabled = true;
+});
+
 // ==========================================
 // 4. INICIALIZAÇÃO
 // ==========================================
 document.addEventListener('DOMContentLoaded', () => {
   carregarPerfil();
   carregarAlertas();
+  carregarPublicacoes();
+  carregarMedicosCredenciados();
 });
