@@ -6,16 +6,83 @@ const app = express();
 const PORT = 3000;
 const dbPath = path.resolve(__dirname, 'database.db');
 
+// Middleware para JSON e URL Encoded
 app.use(express.json({ limit: '8mb' }));
 app.use(express.urlencoded({ extended: true }));
 
-// Serve as duas aplicações de forma totalmente independente
+// HABILITAR CORS (Permite requisições do Live Preview)
+app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
+    if (req.method === 'OPTIONS') {
+        return res.sendStatus(200);
+    }
+    next();
+});
+
+// Lista de utilizadores cadastrados
+const USUARIOS_REGISTADOS = [
+    { username: 'adm@healthdata.com', password: '1234', profile: 'adm' },
+    { username: 'amb@healthdata.com', password: '1234', profile: 'amb' },
+    { username: 'func@healthdata.com', password: '1234', profile: 'fun' }
+];
+
+// ==========================================
+// ROTAS DE TELA (LOGIN E PAINÉIS)
+// ==========================================
+
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+app.get('/login', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+app.get('/admin', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'admin', 'index.html'));
+});
+
+app.get('/ambulatorio', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'ambulatorio', 'index.html'));
+});
+
+app.get('/funcionario', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'funcionario', 'index.html'));
+});
+
+// Servir arquivos estáticos da pasta public
+app.use(express.static(path.join(__dirname, 'public')));
 app.use('/admin', express.static(path.join(__dirname, 'public/admin')));
 app.use('/ambulatorio', express.static(path.join(__dirname, 'public/ambulatorio')));
+app.use('/funcionario', express.static(path.join(__dirname, 'public/funcionario')));
 
-// Redireciona a raiz para o ambulatório por padrão
-app.get('/', (req, res) => res.redirect('/ambulatorio'));
+// ==========================================
+// ROTA DA API: AUTENTICAÇÃO / LOGIN
+// ==========================================
+app.post('/api/login', (req, res) => {
+    const { username, password, profile } = req.body || {};
 
+    const usuarioValido = USUARIOS_REGISTADOS.find(
+        (user) => user.username === username && user.password === password && user.profile === profile
+    );
+
+    if (usuarioValido) {
+        return res.json({
+            success: true,
+            message: 'Autenticação realizada com sucesso!',
+            profile: usuarioValido.profile
+        });
+    }
+
+    return res.status(401).json({
+        success: false,
+        message: 'E-mail, senha ou perfil incorretos!'
+    });
+});
+
+// Banco de Dados SQLite
 const db = new sqlite3.Database(dbPath, (err) => {
   if (err) console.error("Erro no SQLite:", err.message);
   else console.log(`Conectado ao SQLite em: ${dbPath}`);
@@ -58,12 +125,11 @@ db.serialize(() => {
 
     extraColumns.forEach(({ name, definition }) => {
       if (!existingColumns.has(name)) {
-        db.run(`ALTER TABLE colaboradores ADD COLUMN ${name} ${definition}`);
+        db.run(`ALTER TABLE colaboradores ADD COLUMN ${name}${definition}`);
       }
     });
   });
 
-  // Tabela de Exames (Exclusivo Ambulatório)
   db.run(`
     CREATE TABLE IF NOT EXISTS exames (
       id TEXT PRIMARY KEY,
@@ -76,7 +142,6 @@ db.serialize(() => {
     )
   `);
 
-  // Tabela de Médicos Credenciados (Exclusivo Ambulatório)
   db.run(`
     CREATE TABLE IF NOT EXISTS medicos (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -104,6 +169,7 @@ db.serialize(() => {
     )
   `);
 
+  // Dados Iniciais (Seed)
   db.get('SELECT COUNT(*) AS total FROM colaboradores', [], (err, row) => {
     if (err) return;
     if (row && Number(row.total) === 0) {
@@ -166,14 +232,10 @@ db.serialize(() => {
 // ==========================================
 // ROTAS DA API: AMBULATÓRIO
 // ==========================================
-
-// Dashboard: Estatísticas
 app.get('/api/ambulatorio/dashboard', (req, res) => {
-  const stats = { ativos: 148, asosVencidos: 3, alertas: 7, examesMes: 34 };
-  res.json(stats);
+  res.json({ ativos: 148, asosVencidos: 3, alertas: 7, examesMes: 34 });
 });
 
-// Exames: Listar todos
 app.get('/api/ambulatorio/exames', (req, res) => {
   db.all('SELECT * FROM exames ORDER BY id DESC', [], (err, rows) => {
     if (err) return res.status(500).json({ error: err.message });
@@ -181,7 +243,6 @@ app.get('/api/ambulatorio/exames', (req, res) => {
   });
 });
 
-// Exames: Criar novo exame
 app.post('/api/ambulatorio/exames', (req, res) => {
   const { id, colaborador, tipo, data, resultado, medico, observacao } = req.body;
   const query = `INSERT INTO exames (id, colaborador, tipo, data, resultado, medico, observacao) VALUES (?, ?, ?, ?, ?, ?, ?)`;
@@ -192,59 +253,10 @@ app.post('/api/ambulatorio/exames', (req, res) => {
   });
 });
 
-// Médicos: Listar todos
-app.get('/api/ambulatorio/medicos', (req, res) => {
-  db.all('SELECT * FROM medicos ORDER BY id ASC', [], (err, rows) => {
-    if (err) return res.status(500).json({ error: err.message });
-    res.json(rows);
-  });
-});
-
-// Médicos: Cadastrar médico
-app.post('/api/ambulatorio/medicos', (req, res) => {
-  const { nome, especialidade, crm, telefone, email, status } = req.body;
-  const query = `INSERT INTO medicos (nome, especialidade, crm, telefone, email, status) VALUES (?, ?, ?, ?, ?, ?)`;
-  
-  db.run(query, [nome, especialidade, crm, telefone, email, status || 'Disponível'], function(err) {
-    if (err) return res.status(500).json({ error: err.message });
-    res.status(201).json({ id: this.lastID, ...req.body });
-  });
-});
-
-app.put('/api/ambulatorio/medicos/:id', (req, res) => {
-  const { id } = req.params;
-  const { nome, especialidade, crm, telefone, email, status, atendimentos, avaliacao } = req.body;
-  const query = `
-    UPDATE medicos
-    SET nome = ?, especialidade = ?, crm = ?, telefone = ?, email = ?, status = ?, atendimentos = ?, avaliacao = ?
-    WHERE id = ?
-  `;
-
-  db.run(query, [nome, especialidade, crm, telefone, email, status || 'Disponível', atendimentos || 0, avaliacao || 5.0, id], function(err) {
-    if (err) return res.status(500).json({ error: err.message });
-    if (this.changes === 0) return res.status(404).json({ error: 'Médico não encontrado' });
-    res.json({ id: Number(id), nome, especialidade, crm, telefone, email, status: status || 'Disponível', atendimentos: atendimentos || 0, avaliacao: avaliacao || 5.0 });
-  });
-});
-
-app.delete('/api/ambulatorio/medicos/:id', (req, res) => {
-  const { id } = req.params;
-  db.run('DELETE FROM medicos WHERE id = ?', [id], function(err) {
-    if (err) return res.status(500).json({ error: err.message });
-    if (this.changes === 0) return res.status(404).json({ error: 'Médico não encontrado' });
-    res.json({ ok: true, deletedId: Number(id) });
-  });
-});
-
-// Exames: Atualizar exame
 app.put('/api/ambulatorio/exames/:id', (req, res) => {
   const { id } = req.params;
   const { colaborador, tipo, data, resultado, medico, observacao } = req.body;
-  const query = `
-    UPDATE exames
-    SET colaborador = ?, tipo = ?, data = ?, resultado = ?, medico = ?, observacao = ?
-    WHERE id = ?
-  `;
+  const query = `UPDATE exames SET colaborador = ?, tipo = ?, data = ?, resultado = ?, medico = ?, observacao = ? WHERE id = ?`;
 
   db.run(query, [colaborador, tipo, data, resultado, medico, observacao, id], function(err) {
     if (err) return res.status(500).json({ error: err.message });
@@ -262,7 +274,44 @@ app.delete('/api/ambulatorio/exames/:id', (req, res) => {
   });
 });
 
-// Colaboradores (Leitura para a tabela do ambulatório)
+app.get('/api/ambulatorio/medicos', (req, res) => {
+  db.all('SELECT * FROM medicos ORDER BY id ASC', [], (err, rows) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(rows);
+  });
+});
+
+app.post('/api/ambulatorio/medicos', (req, res) => {
+  const { nome, especialidade, crm, telefone, email, status } = req.body;
+  const query = `INSERT INTO medicos (nome, especialidade, crm, telefone, email, status) VALUES (?, ?, ?, ?, ?, ?)`;
+  
+  db.run(query, [nome, especialidade, crm, telefone, email, status || 'Disponível'], function(err) {
+    if (err) return res.status(500).json({ error: err.message });
+    res.status(201).json({ id: this.lastID, ...req.body });
+  });
+});
+
+app.put('/api/ambulatorio/medicos/:id', (req, res) => {
+  const { id } = req.params;
+  const { nome, especialidade, crm, telefone, email, status, atendimentos, avaliacao } = req.body;
+  const query = `UPDATE medicos SET nome = ?, especialidade = ?, crm = ?, telefone = ?, email = ?, status = ?, atendimentos = ?, avaliacao = ? WHERE id = ?`;
+
+  db.run(query, [nome, especialidade, crm, telefone, email, status || 'Disponível', atendimentos || 0, avaliacao || 5.0, id], function(err) {
+    if (err) return res.status(500).json({ error: err.message });
+    if (this.changes === 0) return res.status(404).json({ error: 'Médico não encontrado' });
+    res.json({ id: Number(id), nome, especialidade, crm, telefone, email, status: status || 'Disponível', atendimentos: atendimentos || 0, avaliacao: avaliacao || 5.0 });
+  });
+});
+
+app.delete('/api/ambulatorio/medicos/:id', (req, res) => {
+  const { id } = req.params;
+  db.run('DELETE FROM medicos WHERE id = ?', [id], function(err) {
+    if (err) return res.status(500).json({ error: err.message });
+    if (this.changes === 0) return res.status(404).json({ error: 'Médico não encontrado' });
+    res.json({ ok: true, deletedId: Number(id) });
+  });
+});
+
 app.get('/api/ambulatorio/colaboradores', (req, res) => {
   db.all('SELECT * FROM colaboradores', [], (err, rows) => {
     if (err) return res.status(500).json({ error: err.message });
@@ -282,7 +331,6 @@ app.get('/api/colaboradores', (req, res) => {
 
 app.get('/api/colaboradores/:id', (req, res) => {
   const { id } = req.params;
-
   db.get('SELECT * FROM colaboradores WHERE id = ?', [id], (err, row) => {
     if (err) return res.status(500).json({ error: err.message });
     if (!row) return res.status(404).json({ error: 'Colaborador não encontrado' });
@@ -299,26 +347,11 @@ app.post('/api/colaboradores', (req, res) => {
     return res.status(400).json({ error: 'Nome e matrícula são obrigatórios.' });
   }
 
-  const query = `
-    INSERT INTO colaboradores (nome, matricula, cargo, setor, turno, status, aso_status, admissao, favorito)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `;
-
-  const values = [
-    nome,
-    matricula,
-    payload.cargo || '',
-    payload.setor || '',
-    payload.turno || '',
-    payload.status || 'Ativo',
-    payload.aso_status || 'Em dia',
-    payload.admissao || '',
-    payload.favorito ? 1 : 0
-  ];
+  const query = `INSERT INTO colaboradores (nome, matricula, cargo, setor, turno, status, aso_status, admissao, favorito) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+  const values = [nome, matricula, payload.cargo || '', payload.setor || '', payload.turno || '', payload.status || 'Ativo', payload.aso_status || 'Em dia', payload.admissao || '', payload.favorito ? 1 : 0];
 
   db.run(query, values, function (err) {
     if (err) return res.status(500).json({ error: err.message });
-
     db.get('SELECT * FROM colaboradores WHERE id = ?', [this.lastID], (selectErr, row) => {
       if (selectErr) return res.status(500).json({ error: selectErr.message });
       res.status(201).json(row);
@@ -330,29 +363,12 @@ app.put('/api/colaboradores/:id', (req, res) => {
   const { id } = req.params;
   const payload = req.body || {};
 
-  const query = `
-    UPDATE colaboradores
-    SET nome = ?, matricula = ?, cargo = ?, setor = ?, turno = ?, status = ?, aso_status = ?, admissao = ?, favorito = ?
-    WHERE id = ?
-  `;
-
-  const values = [
-    (payload.nome || '').trim(),
-    (payload.matricula || '').trim(),
-    payload.cargo || '',
-    payload.setor || '',
-    payload.turno || '',
-    payload.status || 'Ativo',
-    payload.aso_status || 'Em dia',
-    payload.admissao || '',
-    payload.favorito ? 1 : 0,
-    id
-  ];
+  const query = `UPDATE colaboradores SET nome = ?, matricula = ?, cargo = ?, setor = ?, turno = ?, status = ?, aso_status = ?, admissao = ?, favorito = ? WHERE id = ?`;
+  const values = [(payload.nome || '').trim(), (payload.matricula || '').trim(), payload.cargo || '', payload.setor || '', payload.turno || '', payload.status || 'Ativo', payload.aso_status || 'Em dia', payload.admissao || '', payload.favorito ? 1 : 0, id];
 
   db.run(query, values, function (err) {
     if (err) return res.status(500).json({ error: err.message });
     if (this.changes === 0) return res.status(404).json({ error: 'Colaborador não encontrado' });
-
     db.get('SELECT * FROM colaboradores WHERE id = ?', [id], (selectErr, row) => {
       if (selectErr) return res.status(500).json({ error: selectErr.message });
       res.json(row);
@@ -373,7 +389,6 @@ app.patch('/api/colaboradores/:id/favorito', (req, res) => {
 
 app.delete('/api/colaboradores/:id', (req, res) => {
   const { id } = req.params;
-
   db.run('DELETE FROM colaboradores WHERE id = ?', [id], function (err) {
     if (err) return res.status(500).json({ error: err.message });
     if (this.changes === 0) return res.status(404).json({ error: 'Colaborador não encontrado' });
@@ -381,21 +396,12 @@ app.delete('/api/colaboradores/:id', (req, res) => {
   });
 });
 
-app.listen(PORT, () => {
-  console.log(`Servidor rodando em http://localhost:${PORT}`);
-  console.log(`- Admin: http://localhost:${PORT}/admin`);
-  console.log(`- Ambulatório: http://localhost:${PORT}/ambulatorio`);
-});
-
-// Servir a pasta do funcionário
-app.use('/funcionario', express.static(path.join(__dirname, 'public/funcionario')));
-
-// API: Dados do Perfil do Funcionário Logado (Exemplo: Maria Fernandes - ID 1)
+// ==========================================
+// ROTAS DA API: FUNCIONÁRIO
+// ==========================================
 function montarPerfil(row) {
-  const alergias = (row?.alergias || 'Penicilina — Reação anafilática confirmada\nAmendoim — Intolerância documentada')
-    .split('\n').map(item => item.trim()).filter(Boolean);
-  const comorbidades = (row?.comorbidades || '')
-    .split('\n').map(item => item.trim()).filter(Boolean);
+  const alergias = (row?.alergias || 'Penicilina — Reação anafilática confirmada\nAmendoim — Intolerância documentada').split('\n').map(item => item.trim()).filter(Boolean);
+  const comorbidades = (row?.comorbidades || '').split('\n').map(item => item.trim()).filter(Boolean);
 
   return {
     nome: row?.nome || 'Maria Fernandes',
@@ -440,9 +446,8 @@ app.put('/api/funcionario/perfil', (req, res) => {
   });
 });
 
-// API: Alertas e Encaminhamentos
 app.get('/api/funcionario/alertas', (req, res) => {
-  const alertas = {
+  res.json({
     pendenciaPrincipal: {
       titulo: "ASO PENDENTE DE REAVALIAÇÃO",
       descricao: "Exame de colesterol total fora da faixa de referência — resultado 240 mg/dL (referência até 200 mg/dL), coletado em 22/07/2026. O serviço médico recomenda reavaliação com cardiologista e repetição do exame em 30 dias.",
@@ -456,12 +461,11 @@ app.get('/api/funcionario/alertas', (req, res) => {
       { especialidade: "FISIOTERAPIA", medico: "Ft. Carla Souza", local: "Ambulatório da Planta — Bloco C", status: "Em tratamento", data: "3 sessões realizadas", cor: "teal" },
       { especialidade: "EXAME LABORATORIAL", medico: "Perfil Lipídico Completo", local: "Laboratório Central — Bloco A", status: "Solicitado", data: "Prazo: 30/08/2026", cor: "orange" }
     ]
-  };
-  res.json(alertas);
+  });
 });
 
 // ==========================================
-// ROTAS DA API: PUBLICAÇÕES DO AMBULATÓRIO
+// ROTAS DA API: PUBLICAÇÕES
 // ==========================================
 app.get('/api/ambulatorio/publicacoes', (req, res) => {
   db.all('SELECT * FROM publicacoes ORDER BY id DESC', [], (err, rows) => {
@@ -480,18 +484,8 @@ app.post('/api/ambulatorio/publicacoes', (req, res) => {
     return res.status(400).json({ error: 'Título, descrição e categoria são obrigatórios.' });
   }
 
-  const query = `
-    INSERT INTO publicacoes (titulo, descricao, categoria, informacao, status, imagem)
-    VALUES (?, ?, ?, ?, ?, ?)
-  `;
-  const values = [
-    titulo,
-    descricao,
-    categoria,
-    (payload.informacao || '').trim(),
-    payload.status || 'EM ANDAMENTO',
-    payload.imagem || ''
-  ];
+  const query = `INSERT INTO publicacoes (titulo, descricao, categoria, informacao, status, imagem) VALUES (?, ?, ?, ?, ?, ?)`;
+  const values = [titulo, descricao, categoria, (payload.informacao || '').trim(), payload.status || 'EM ANDAMENTO', payload.imagem || ''];
 
   db.run(query, values, function (err) {
     if (err) return res.status(500).json({ error: err.message });
@@ -500,4 +494,13 @@ app.post('/api/ambulatorio/publicacoes', (req, res) => {
       res.status(201).json(row);
     });
   });
+});
+
+// Inicialização do Servidor
+app.listen(PORT, () => {
+  console.log(`Servidor rodando em http://localhost:${PORT}`);
+  console.log(`- Login: http://localhost:${PORT}/login`);
+  console.log(`- Admin: http://localhost:${PORT}/admin`);
+  console.log(`- Ambulatório: http://localhost:${PORT}/ambulatorio`);
+  console.log(`- Funcionário: http://localhost:${PORT}/funcionario`);
 });

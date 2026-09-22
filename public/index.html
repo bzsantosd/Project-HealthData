@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HealthData - Acesso ao Sistema</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-header">
+            <h2>HealthData</h2>
+            <p>Insira suas credenciais para acessar a plataforma</p>
+        </div>
+
+        <form id="loginForm">
+            <div class="input-group">
+                <label for="username">Usuário / E-mail</label>
+                <input type="text" id="username" placeholder="Digite seu usuário" required>
+            </div>
+
+            <div class="input-group">
+                <label for="password">Senha</label>
+                <input type="password" id="password" placeholder="Digite sua senha" required>
+            </div>
+
+            <div class="input-group">
+                <label for="profile">Perfil de Acesso</label>
+                <select id="profile" required>
+                    <option value="" disabled selected>Selecione o perfil...</option>
+                    <option value="adm">Administrador (ADM)</option>
+                    <option value="amb">Ambulatório / Saúde (AMB)</option>
+                    <option value="fun">Funcionário (FUN)</option>
+                </select>
+            </div>
+
+            <div id="errorMessage" class="error-message"></div>
+
+            <button type="submit" class="btn-login">Entrar</button>
+        </form>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HealthData - Área do Funcionário</title>
+    <link rel="stylesheet" href="../style.css">
+    <style>
+        .dashboard-container {
+            width: 90%;
+            max-width: 1100px;
+            margin: 40px auto;
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #f0f4f8;
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+        }
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        .card {
+            background: #f8fafc;
+            border-left: 5px solid #27ae60;
+            padding: 20px;
+            border-radius: 8px;
+        }
+        .btn-logout {
+            background: #e74c3c;
+            color: #fff;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <div class="header">
+            <div>
+                <h2>Área do Funcionário</h2>
+                <p>Olá, <strong id="usernameDisplay">Colaborador</strong>!</p>
+            </div>
+            <button class="btn-logout" onclick="logout()">Sair</button>
+        </div>
+
+        <div class="cards-grid">
+            <div class="card">
+                <h3>Meus Agendamentos</h3>
+                <p>Visualize datas de exames admissionais e periódicos.</p>
+            </div>
+            <div class="card">
+                <h3>Enviar Atestado</h3>
+                <p>Anexe e envie atestados médicos para a equipe de saúde.</p>
+            </div>
+            <div class="card">
+                <h3>Histórico de Saúde</h3>
+                <p>Consulte registros básicos e orientações médicas recebidas.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Proteção de rota
+        if (sessionStorage.getItem('userProfile') !== 'fun') {
+            window.location.href = '../index.html';
+        }
+        document.getElementById('usernameDisplay').textContent = sessionStorage.getItem('username') || 'Funcionário';
+
+        function logout() {
+            sessionStorage.clear();
+            window.location.href = '../index.html';
+        }
+    </script>
+</body>
+</html>
