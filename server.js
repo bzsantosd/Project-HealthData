@@ -41,15 +41,18 @@ app.get('/login', (req, res) => {
 });
 
 app.get('/admin', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'admin', 'index.html'));
+  if (req.path === '/admin') return res.redirect('/admin/');
+  res.sendFile(path.join(__dirname, 'public', 'admin', 'index.html'));
 });
 
 app.get('/ambulatorio', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'ambulatorio', 'index.html'));
+  if (req.path === '/ambulatorio') return res.redirect('/ambulatorio/');
+  res.sendFile(path.join(__dirname, 'public', 'ambulatorio', 'index.html'));
 });
 
 app.get('/funcionario', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'funcionario', 'index.html'));
+  if (req.path === '/funcionario') return res.redirect('/funcionario/');
+  res.sendFile(path.join(__dirname, 'public', 'funcionario', 'index.html'));
 });
 
 // Servir arquivos estáticos da pasta public

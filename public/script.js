@@ -14,8 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (errorMessage) errorMessage.style.display = 'none';
 
         try {
-            // Requisição com a URL completa apontando para a porta 3000 do Node
-            const response = await fetch('http://localhost:3000/api/login', {
+            const response = await fetch('/api/login', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -29,14 +28,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 sessionStorage.setItem('userProfile', data.profile);
                 sessionStorage.setItem('username', username);
 
-                // Redirecionamento forçado para a porta 3000 do Node.js
                 const redirectRoutes = {
-                    'adm': 'http://localhost:3000/admin',
-                    'amb': 'http://localhost:3000/ambulatorio',
-                    'fun': 'http://localhost:3000/funcionario'
+                    adm: '/admin/',
+                    amb: '/ambulatorio/',
+                    fun: '/funcionario/'
                 };
 
-                window.location.href = redirectRoutes[data.profile] || 'http://localhost:3000/';
+                window.location.assign(redirectRoutes[data.profile] || '/');
             } else {
                 showError(data.message || 'Credenciais inválidas.');
             }

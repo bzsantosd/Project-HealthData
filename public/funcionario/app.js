@@ -52,6 +52,11 @@ navItems.forEach(item => {
   });
 });
 
+document.querySelector('button[title="Sair"]')?.addEventListener('click', () => {
+  sessionStorage.clear();
+  window.location.assign('/');
+});
+
 // ==========================================
 // 2. CARREGAR DADOS DO PERFIL DO FUNCIONÁRIO
 // ==========================================

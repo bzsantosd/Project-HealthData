@@ -21,6 +21,11 @@ navItems.forEach(item => {
 // Botão de notificação redireciona para a aba de alertas
 document.getElementById('btnGoAlerts')?.addEventListener('click', () => switchTab('tab-alertas'));
 
+document.querySelector('button[title="Sair"]')?.addEventListener('click', () => {
+  sessionStorage.clear();
+  window.location.assign('/');
+});
+
 // Sincronização de Tema
 const themeToggle = document.getElementById('themeToggle');
 const configThemeToggle = document.getElementById('configThemeToggle');

@@ -17,6 +17,11 @@ navItems.forEach(item => {
   });
 });
 
+document.querySelector('button[title="Sair"]')?.addEventListener('click', () => {
+  sessionStorage.clear();
+  window.location.assign('/');
+});
+
 const themeToggle = document.getElementById('themeToggle');
 const configThemeToggle = document.getElementById('configThemeToggle');
 const themeText = document.getElementById('themeText');
