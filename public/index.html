@@ -7,38 +7,82 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="login-container">
-        <div class="login-header">
-            <h2>HealthData</h2>
-            <p>Insira suas credenciais para acessar a plataforma</p>
-        </div>
+    <main class="login-shell">
+        <section class="login-container" aria-labelledby="loginTitle">
+            <header class="login-header">
+                <div class="brand-lockup">
+                    <div class="brand-mark" aria-hidden="true">
+                        <svg viewBox="0 0 52 60" role="img" aria-label="Escudo HealthData">
+                            <path class="shield-outline" d="M26 2 48 10v18c0 14-9 24-22 30C13 52 4 42 4 28V10L26 2Z" />
+                            <path class="shield-pulse" d="M10 31h9l4-12 6 22 5-14h8" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h1>Health<span>Data</span></h1>
+                        <p>Monitoramento de<br>Saúde Ocupacional</p>
+                    </div>
+                </div>
+                <h2 id="loginTitle">Bem-vindo! Acesse sua conta.</h2>
+            </header>
 
-        <form id="loginForm">
-            <div class="input-group">
-                <label for="username">Usuário / E-mail</label>
-                <input type="text" id="username" placeholder="Digite seu usuário" required>
+            <div class="profile-tabs" role="tablist" aria-label="Perfil de acesso">
+                <button class="profile-tab active" type="button" role="tab" aria-selected="true" data-profile="adm">ADM</button>
+                <button class="profile-tab" type="button" role="tab" aria-selected="false" data-profile="amb">AMBULATÓRIO</button>
+                <button class="profile-tab" type="button" role="tab" aria-selected="false" data-profile="fun">FUNCIONÁRIO</button>
             </div>
 
-            <div class="input-group">
-                <label for="password">Senha</label>
-                <input type="password" id="password" placeholder="Digite sua senha" required>
-            </div>
+            <p class="access-title" id="accessTitle">Acesso Administrativo</p>
 
-            <div class="input-group">
-                <label for="profile">Perfil de Acesso</label>
-                <select id="profile" required>
-                    <option value="" disabled selected>Selecione o perfil...</option>
-                    <option value="adm">Administrador (ADM)</option>
-                    <option value="amb">Ambulatório / Saúde (AMB)</option>
-                    <option value="fun">Funcionário (FUN)</option>
-                </select>
-            </div>
+            <form id="loginForm">
+                <input type="hidden" id="profile" value="adm">
+                <div class="input-group">
+                    <label for="username">E-mail ou Usuário</label>
+                    <div class="input-control">
+                        <span class="input-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24">
+                                <circle cx="12" cy="8" r="3.5"></circle>
+                                <path d="M5 20c.8-3.5 3.1-5.5 7-5.5s6.2 2 7 5.5"></path>
+                            </svg>
+                        </span>
+                        <input type="text" id="username" placeholder="exemplo@healthdata.com" autocomplete="username" required>
+                    </div>
+                </div>
 
-            <div id="errorMessage" class="error-message"></div>
+                <div class="input-group password-group">
+                    <div class="label-row">
+                        <label for="password">Senha</label>
+                        <a href="recuperar-senha.html" id="forgotPassword">Esqueceu a senha?</a>
+                    </div>
+                    <div class="input-control">
+                        <span class="input-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24">
+                                <rect x="5" y="10" width="14" height="10" rx="2"></rect>
+                                <path d="M8 10V7a4 4 0 0 1 8 0v3"></path>
+                                <circle cx="12" cy="15" r="1"></circle>
+                            </svg>
+                        </span>
+                        <input type="password" id="password" placeholder="Digite sua senha" autocomplete="current-password" required>
+                        <button type="button" class="password-toggle" id="passwordToggle" aria-label="Mostrar senha" aria-pressed="false">
+                            <svg class="eye-icon" viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"></path>
+                                <circle cx="12" cy="12" r="2.5"></circle>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
 
-            <button type="submit" class="btn-login">Entrar</button>
-        </form>
-    </div>
+                <div id="errorMessage" class="error-message" role="alert"></div>
+                <button type="submit" class="btn-login">ENTRAR</button>
+                <label class="remember-me">
+                    <input type="checkbox" id="rememberMe">
+                    <span class="switch" aria-hidden="true"></span>
+                    <span>Mantenha-me conectado</span>
+                </label>
+            </form>
+
+            <p class="request-access">Ainda não tem acesso? <a href="solicitar-acesso.html">Solicite ao RH</a></p>
+        </section>
+    </main>
 
     <script src="script.js"></script>
 </body>

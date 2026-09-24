@@ -1,5 +1,36 @@
 document.addEventListener('DOMContentLoaded', () => {
     const loginForm = document.getElementById('loginForm');
+    const profileInput = document.getElementById('profile');
+    const accessTitle = document.getElementById('accessTitle');
+    const passwordInput = document.getElementById('password');
+    const passwordToggle = document.getElementById('passwordToggle');
+    const profileTitles = {
+        adm: 'Acesso Administrativo',
+        amb: 'Acesso do Ambulatório',
+        fun: 'Acesso do Funcionário'
+    };
+
+    passwordToggle?.addEventListener('click', () => {
+        const shouldShowPassword = passwordInput?.type === 'password';
+        if (passwordInput) passwordInput.type = shouldShowPassword ? 'text' : 'password';
+        passwordToggle.setAttribute('aria-label', shouldShowPassword ? 'Ocultar senha' : 'Mostrar senha');
+        passwordToggle.setAttribute('aria-pressed', String(shouldShowPassword));
+        passwordToggle.classList.toggle('is-visible', shouldShowPassword);
+    });
+
+    document.querySelectorAll('.profile-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            const selectedProfile = tab.dataset.profile;
+            if (profileInput) profileInput.value = selectedProfile;
+            if (accessTitle) accessTitle.textContent = profileTitles[selectedProfile];
+
+            document.querySelectorAll('.profile-tab').forEach(item => {
+                const isActive = item === tab;
+                item.classList.toggle('active', isActive);
+                item.setAttribute('aria-selected', String(isActive));
+            });
+        });
+    });
 
     if (!loginForm) return;
 
@@ -8,7 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const username = document.getElementById('username')?.value.trim();
         const password = document.getElementById('password')?.value.trim();
-        const profile = document.getElementById('profile')?.value;
+        const profile = profileInput?.value;
         const errorMessage = document.getElementById('errorMessage');
 
         if (errorMessage) errorMessage.style.display = 'none';
@@ -34,7 +65,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     fun: '/funcionario/'
                 };
 
-                window.location.assign(redirectRoutes[data.profile] || '/');
+                const redirectRoute = redirectRoutes[data.profile];
+                if (!redirectRoute) {
+                    showError('Perfil de acesso inválido.');
+                    return;
+                }
+
+                window.location.assign(redirectRoute);
             } else {
                 showError(data.message || 'Credenciais inválidas.');
             }

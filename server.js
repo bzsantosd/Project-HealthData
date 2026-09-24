@@ -85,6 +85,31 @@ app.post('/api/login', (req, res) => {
     });
 });
 
+  app.post('/api/alterar-senha', (req, res) => {
+    const { username, newPassword } = req.body || {};
+
+    if (!username || !newPassword || newPassword.length < 4) {
+      return res.status(400).json({
+        success: false,
+        message: 'Informe o usuário e uma senha com pelo menos 4 caracteres.'
+      });
+    }
+
+    const usuario = USUARIOS_REGISTADOS.find(user => user.username === username);
+    if (!usuario) {
+      return res.status(404).json({
+        success: false,
+        message: 'Usuário não encontrado.'
+      });
+    }
+
+    usuario.password = newPassword;
+    return res.json({
+      success: true,
+      message: 'Senha alterada com sucesso.'
+    });
+  });
+
 // Banco de Dados SQLite
 const db = new sqlite3.Database(dbPath, (err) => {
   if (err) console.error("Erro no SQLite:", err.message);

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HealthData - Recuperar Senha</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <main class="login-shell">
+        <section class="login-container" aria-labelledby="recoveryTitle">
+            <header class="login-header">
+                <div class="brand-lockup">
+                    <div class="brand-mark" aria-hidden="true">
+                        <svg viewBox="0 0 52 60">
+                            <path class="shield-outline" d="M26 2 48 10v18c0 14-9 24-22 30C13 52 4 42 4 28V10L26 2Z" />
+                            <path class="shield-pulse" d="M10 31h9l4-12 6 22 5-14h8" />
+                        </svg>
+                    </div>
+                    <div>
+                        <h1>Health<span>Data</span></h1>
+                        <p>Monitoramento de<br>Saúde Ocupacional</p>
+                    </div>
+                </div>
+                <h2 id="recoveryTitle">Alterar sua senha</h2>
+            </header>
+
+            <p class="contact-intro">Informe seus dados para cadastrar uma nova senha de acesso.</p>
+
+            <form class="recovery-form" id="recoveryForm">
+                <div class="input-group">
+                    <label for="recoveryUsername">E-mail ou Usuário</label>
+                    <div class="input-control">
+                        <span class="input-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24">
+                                <circle cx="12" cy="8" r="3.5"></circle>
+                                <path d="M5 20c.8-3.5 3.1-5.5 7-5.5s6.2 2 7 5.5"></path>
+                            </svg>
+                        </span>
+                        <input type="text" id="recoveryUsername" placeholder="exemplo@healthdata.com" autocomplete="username" required>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label for="newPassword">Nova senha</label>
+                    <div class="input-control">
+                        <span class="input-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24">
+                                <rect x="5" y="10" width="14" height="10" rx="2"></rect>
+                                <path d="M8 10V7a4 4 0 0 1 8 0v3"></path>
+                                <circle cx="12" cy="15" r="1"></circle>
+                            </svg>
+                        </span>
+                        <input type="password" id="newPassword" minlength="4" placeholder="Digite a nova senha" required>
+                        <button type="button" class="password-toggle" data-password-target="newPassword" aria-label="Mostrar nova senha" aria-pressed="false">
+                            <svg class="eye-icon" viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"></path>
+                                <circle cx="12" cy="12" r="2.5"></circle>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label for="confirmPassword">Confirmar nova senha</label>
+                    <div class="input-control">
+                        <span class="input-icon" aria-hidden="true">
+                            <svg viewBox="0 0 24 24">
+                                <rect x="5" y="10" width="14" height="10" rx="2"></rect>
+                                <path d="M8 10V7a4 4 0 0 1 8 0v3"></path>
+                                <circle cx="12" cy="15" r="1"></circle>
+                            </svg>
+                        </span>
+                        <input type="password" id="confirmPassword" minlength="4" placeholder="Repita a nova senha" required>
+                        <button type="button" class="password-toggle" data-password-target="confirmPassword" aria-label="Mostrar confirmação da senha" aria-pressed="false">
+                            <svg class="eye-icon" viewBox="0 0 24 24" aria-hidden="true">
+                                <path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z"></path>
+                                <circle cx="12" cy="12" r="2.5"></circle>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="recoveryError" class="error-message" role="alert"></div>
+                <button type="submit" class="btn-login">ALTERAR SENHA</button>
+                <div id="recoverySuccess" class="recovery-success" role="status">Senha alterada com sucesso. Você já pode entrar com a nova senha.</div>
+            </form>
+
+            <a class="request-access back-login" href="index.html">Voltar para o login</a>
+        </section>
+    </main>
+
+    <script>
+        document.querySelectorAll('[data-password-target]').forEach(toggle => {
+            toggle.addEventListener('click', () => {
+                const input = document.getElementById(toggle.dataset.passwordTarget);
+                const shouldShow = input.type === 'password';
+                input.type = shouldShow ? 'text' : 'password';
+                toggle.setAttribute('aria-label', shouldShow ? 'Ocultar senha' : 'Mostrar senha');
+                toggle.setAttribute('aria-pressed', String(shouldShow));
+                toggle.classList.toggle('is-visible', shouldShow);
+            });
+        });
+
+        document.getElementById('recoveryForm').addEventListener('submit', async event => {
+            event.preventDefault();
+            const username = document.getElementById('recoveryUsername').value.trim();
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const error = document.getElementById('recoveryError');
+            const success = document.getElementById('recoverySuccess');
+
+            error.textContent = '';
+            success.classList.remove('visible');
+            if (newPassword !== confirmPassword) {
+                error.textContent = 'As senhas não coincidem.';
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/alterar-senha', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, newPassword })
+                });
+                const data = await response.json();
+                if (!response.ok || !data.success) {
+                    error.textContent = data.message || 'Não foi possível alterar a senha.';
+                    return;
+                }
+
+                success.classList.add('visible');
+                event.target.reset();
+            } catch (requestError) {
+                error.textContent = 'Não foi possível conectar ao servidor.';
+            }
+        });
+    </script>
+</body>
+</html>

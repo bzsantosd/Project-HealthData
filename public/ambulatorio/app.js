@@ -17,21 +17,53 @@ navItems.forEach(item => {
   });
 });
 
+document.getElementById('btnGoAlerts')?.addEventListener('click', () => switchTab('tab-colaboradores'));
+
 document.querySelector('button[title="Sair"]')?.addEventListener('click', () => {
   sessionStorage.clear();
-  window.location.assign('/');
+  window.location.assign('/login');
 });
+
+document.getElementById('btnUserSettings')?.addEventListener('click', () => switchTab('tab-configuracoes'));
+
+document.querySelectorAll('.settings-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    const targetId = tab.dataset.settingsTab;
+    document.querySelectorAll('.settings-tab').forEach(item => {
+      const isActive = item === tab;
+      item.classList.toggle('active', isActive);
+      item.setAttribute('aria-selected', String(isActive));
+    });
+    document.querySelectorAll('.settings-panel').forEach(panel => {
+      const isActive = panel.id === targetId;
+      panel.classList.toggle('active', isActive);
+      panel.hidden = !isActive;
+    });
+  });
+});
+
+const settingsProfileUsername = document.getElementById('settingsProfileUsername');
+if (settingsProfileUsername) {
+  settingsProfileUsername.textContent = sessionStorage.getItem('username') || 'amb@healthdata.com';
+}
 
 const themeToggle = document.getElementById('themeToggle');
 const configThemeToggle = document.getElementById('configThemeToggle');
+const themeIcon = document.getElementById('themeIcon');
 const themeText = document.getElementById('themeText');
+
+const sunIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2m0 16v2M4.9 4.9l1.4 1.4m11.4 11.4 1.4 1.4M2 12h2m16 0h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>';
+const moonIcon = '<svg class="theme-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 15.5A8 8 0 0 1 8.5 4 8.5 8.5 0 1 0 20 15.5Z"></path></svg>';
 
 function toggleTheme(isDark) {
   const mode = isDark ? 'dark' : 'light';
   document.documentElement.setAttribute('data-theme', mode);
+  if (themeIcon) themeIcon.innerHTML = isDark ? moonIcon : sunIcon;
   if (themeText) themeText.innerText = isDark ? 'Escuro' : 'Claro';
   if (configThemeToggle) configThemeToggle.checked = isDark;
 }
+
+toggleTheme(document.documentElement.getAttribute('data-theme') === 'dark');
 
 themeToggle?.addEventListener('click', () => {
   const isDark = document.documentElement.getAttribute('data-theme') !== 'dark';
