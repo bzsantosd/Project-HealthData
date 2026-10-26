@@ -46,6 +46,8 @@ if (settingsProfileUsername) {
 
 document.querySelector('button[title="Sair"]')?.addEventListener('click', () => {
   sessionStorage.clear();
+  localStorage.removeItem('userProfile');
+  localStorage.removeItem('username');
   window.location.assign('/');
 });
 
@@ -93,6 +95,39 @@ function getColorForName(str) {
   let hash = 0;
   for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
   return avatarColors[Math.abs(hash) % avatarColors.length];
+}
+
+function escapeHtml(value) {
+  return String(value || '').replace(/[&<>'"]/g, character => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+  })[character]);
+}
+
+async function carregarPublicacoes() {
+  const grid = document.getElementById('publicacoesGrid');
+  if (!grid) return;
+  try {
+    const response = await fetch('/api/ambulatorio/publicacoes');
+    if (!response.ok) throw new Error(`Erro HTTP ${response.status}`);
+    const publicacoes = await response.json();
+    if (!Array.isArray(publicacoes) || publicacoes.length === 0) {
+      grid.innerHTML = '<p class="empty-state">Nenhuma publicação disponível no momento.</p>';
+      return;
+    }
+    grid.innerHTML = publicacoes.map(publicacao => `
+      <article class="dash-card">
+        ${publicacao.imagem ? `<div class="card-img-wrapper"><img src="${escapeHtml(publicacao.imagem)}" alt="${escapeHtml(publicacao.titulo)}"><span class="tag-floating tag-orange">${escapeHtml(publicacao.categoria)}</span></div>` : ''}
+        <div class="card-body">
+          <h3>${escapeHtml(publicacao.titulo)}</h3>
+          <p>${escapeHtml(publicacao.descricao)}</p>
+        </div>
+        <div class="card-footer-info"><span>${escapeHtml(publicacao.informacao || 'Publicado pelo ambulatório')}</span><span class="badge-outline-teal">${escapeHtml(publicacao.status)}</span></div>
+      </article>
+    `).join('');
+  } catch (error) {
+    grid.innerHTML = '<p class="empty-state">Não foi possível carregar as publicações.</p>';
+    console.error('Erro ao carregar publicações:', error);
+  }
 }
 
 // Modal
@@ -143,6 +178,82 @@ async function carregarColaboradores() {
     if (tbody) {
       tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color: var(--tag-red-text); padding:24px;">Falha de conexão com o banco de dados.</td></tr>`;
     }
+  }
+}
+
+async function carregarIndicadores() {
+  try {
+    const response = await fetch('/api/ambulatorio/dashboard');
+    if (!response.ok) throw new Error(`Erro HTTP ${response.status}`);
+    const indicadores = await response.json();
+    document.querySelectorAll('[data-metric]').forEach(element => {
+      const value = indicadores[element.dataset.metric];
+      if (value !== undefined) element.textContent = value;
+    });
+    const totalAlerts = document.querySelector('.notif-badge .count');
+    if (totalAlerts) totalAlerts.textContent = indicadores.alertas;
+    const asoSummary = document.getElementById('asoStatusSummary');
+    if (asoSummary) {
+      asoSummary.innerHTML = [
+        ['Em dia', indicadores.asoEmDia],
+        ['A vencer', indicadores.asoAVencer],
+        ['Vencidos', indicadores.asosVencidos]
+      ].map(([label, value]) => `<div class="goal-item"><div class="goal-header"><span>${label}</span><strong>${value}</strong></div></div>`).join('');
+    }
+    const examSummary = document.getElementById('examStatusSummary');
+    if (examSummary) {
+      examSummary.innerHTML = [
+        ['Normais', indicadores.examesNormais, 'dot-green'],
+        ['Alterados', indicadores.examesAlterados, 'dot-red'],
+        ['Pendentes', indicadores.examesPendentes, 'dot-yellow']
+      ].map(([label, value, dotClass]) => `<li><span class="dot ${dotClass}"></span><div><strong>${label}</strong><p>${value} registro(s)</p></div></li>`).join('');
+    }
+  } catch (error) {
+    console.error('Erro ao carregar indicadores:', error);
+    document.querySelectorAll('[data-metric]').forEach(element => {
+      element.textContent = '—';
+    });
+  }
+}
+
+async function carregarAlertas() {
+  const list = document.getElementById('adminAlertsList');
+  const subtitle = document.getElementById('adminAlertSubtitle');
+  if (!list) return;
+  try {
+    const response = await fetch('/api/ambulatorio/alertas');
+    if (!response.ok) throw new Error(`Erro HTTP ${response.status}`);
+    const alerts = await response.json();
+    list.hidden = false;
+    if (subtitle) subtitle.textContent = `${alerts.length} alerta(s) encontrados nos cadastros e exames.`;
+    if (!Array.isArray(alerts) || alerts.length === 0) {
+      list.innerHTML = '<p class="empty-state">Nenhuma pendência encontrada.</p>';
+      return;
+    }
+
+    list.innerHTML = alerts.map(alert => {
+      const isUrgent = ['Vencido', 'Alterado'].includes(alert.status);
+      const severity = isUrgent ? 'red' : 'yellow';
+      const title = alert.tipo === 'ASO' ? `ASO ${alert.status}` : `EXAME ${alert.status}`;
+      const description = alert.descricao || `Situação do ASO: ${alert.status}.`;
+      return `
+        <article class="alert-card alert-border-${severity}">
+          <div class="alert-header">
+            <div class="alert-title text-${severity}">
+              <span>${escapeHtml(title)}</span>
+              <span class="alert-subtitle">· ${escapeHtml(alert.colaborador)} — Mat. ${escapeHtml(alert.matricula)}</span>
+            </div>
+            <span class="alert-date">${alert.data ? `Data: ${escapeHtml(alert.data)}` : 'Data não informada'}</span>
+          </div>
+          <p class="alert-desc">${escapeHtml(description)}</p>
+        </article>
+      `;
+    }).join('');
+  } catch (error) {
+    list.innerHTML = '<p class="empty-state">Não foi possível carregar os alertas.</p>';
+    list.hidden = false;
+    if (subtitle) subtitle.textContent = 'Erro ao consultar alertas no banco de dados.';
+    console.error('Erro ao carregar alertas:', error);
   }
 }
 
@@ -289,3 +400,6 @@ window.deletarColaborador = async (id) => {
 
 // Inicializa a listagem
 carregarColaboradores();
+carregarIndicadores();
+carregarPublicacoes();
+carregarAlertas();

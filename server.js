@@ -1,10 +1,26 @@
 const express = require('express');
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
+const crypto = require('crypto');
 
 const app = express();
 const PORT = 3000;
 const dbPath = path.resolve(__dirname, 'database.db');
+const db = new sqlite3.Database(dbPath, (err) => {
+  if (err) console.error('Erro no SQLite:', err.message);
+  else console.log(`Conectado ao SQLite em: ${dbPath}`);
+});
+
+function criarHashSenha(password, salt = crypto.randomBytes(16).toString('hex')) {
+  const hash = crypto.scryptSync(password, salt, 64).toString('hex');
+  return { salt, hash };
+}
+
+function verificarSenha(password, salt, hash) {
+  const candidate = crypto.scryptSync(password, salt, 64);
+  const stored = Buffer.from(hash, 'hex');
+  return stored.length === candidate.length && crypto.timingSafeEqual(candidate, stored);
+}
 
 // Middleware para JSON e URL Encoded
 app.use(express.json({ limit: '8mb' }));
@@ -20,13 +36,6 @@ app.use((req, res, next) => {
     }
     next();
 });
-
-// Lista de utilizadores cadastrados
-const USUARIOS_REGISTADOS = [
-    { username: 'adm@healthdata.com', password: '1234', profile: 'adm' },
-    { username: 'amb@healthdata.com', password: '1234', profile: 'amb' },
-    { username: 'func@healthdata.com', password: '1234', profile: 'fun' }
-];
 
 // ==========================================
 // ROTAS DE TELA (LOGIN E PAINÉIS)
@@ -61,63 +70,43 @@ app.use('/admin', express.static(path.join(__dirname, 'public/admin')));
 app.use('/ambulatorio', express.static(path.join(__dirname, 'public/ambulatorio')));
 app.use('/funcionario', express.static(path.join(__dirname, 'public/funcionario')));
 
-// ==========================================
-// ROTA DA API: AUTENTICAÇÃO / LOGIN
-// ==========================================
-app.post('/api/login', (req, res) => {
-    const { username, password, profile } = req.body || {};
-
-    const usuarioValido = USUARIOS_REGISTADOS.find(
-        (user) => user.username === username && user.password === password && user.profile === profile
-    );
-
-    if (usuarioValido) {
-        return res.json({
-            success: true,
-            message: 'Autenticação realizada com sucesso!',
-            profile: usuarioValido.profile
-        });
-    }
-
-    return res.status(401).json({
-        success: false,
-        message: 'E-mail, senha ou perfil incorretos!'
-    });
-});
-
-  app.post('/api/alterar-senha', (req, res) => {
-    const { username, newPassword } = req.body || {};
-
-    if (!username || !newPassword || newPassword.length < 4) {
-      return res.status(400).json({
-        success: false,
-        message: 'Informe o usuário e uma senha com pelo menos 4 caracteres.'
-      });
-    }
-
-    const usuario = USUARIOS_REGISTADOS.find(user => user.username === username);
-    if (!usuario) {
-      return res.status(404).json({
-        success: false,
-        message: 'Usuário não encontrado.'
-      });
-    }
-
-    usuario.password = newPassword;
-    return res.json({
-      success: true,
-      message: 'Senha alterada com sucesso.'
-    });
-  });
-
 // Banco de Dados SQLite
-const db = new sqlite3.Database(dbPath, (err) => {
-  if (err) console.error("Erro no SQLite:", err.message);
-  else console.log(`Conectado ao SQLite em: ${dbPath}`);
-});
-
 // Inicialização das Tabelas do Banco de Dados
 db.serialize(() => {
+  db.run(`
+    CREATE TABLE IF NOT EXISTS usuarios (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      username TEXT NOT NULL UNIQUE,
+      profile TEXT NOT NULL,
+      password_salt TEXT NOT NULL,
+      password_hash TEXT NOT NULL,
+      matricula TEXT
+    )
+  `);
+
+  db.get('SELECT COUNT(*) AS total FROM usuarios', [], (err, row) => {
+    if (err) {
+      console.error('Erro ao verificar usuários:', err.message);
+      return;
+    }
+    if (Number(row?.total) > 0) return;
+
+    const usuarios = [
+      ['adm@healthdata.com', 'adm', '1234', null],
+      ['amb@healthdata.com', 'amb', '1234', null],
+      ['func@healthdata.com', 'fun', '1234', '12345']
+    ];
+    const insert = db.prepare(`
+      INSERT INTO usuarios (username, profile, password_salt, password_hash, matricula)
+      VALUES (?, ?, ?, ?, ?)
+    `);
+    usuarios.forEach(([username, profile, password, matricula]) => {
+      const { salt, hash } = criarHashSenha(password);
+      insert.run(username, profile, salt, hash, matricula);
+    });
+    insert.finalize();
+  });
+
   db.run(`
     CREATE TABLE IF NOT EXISTS colaboradores (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -197,6 +186,25 @@ db.serialize(() => {
     )
   `);
 
+  db.get('SELECT COUNT(*) AS total FROM publicacoes', [], (err, row) => {
+    if (err) {
+      console.error('Erro ao verificar publicações:', err.message);
+      return;
+    }
+    if (Number(row?.total) > 0) return;
+
+    const publicacoes = [
+      ['Exames Periódicos — Ciclo 2026/2027', 'Consulte o ambulatório para conferir o calendário de exames periódicos.', 'PERIÓDICO', 'Ambulatório HealthData', 'EM ANDAMENTO'],
+      ['Saúde e segurança no trabalho', 'Acompanhe as orientações e campanhas publicadas pela equipe de saúde ocupacional.', 'CAMPANHA', 'Equipe HealthData', 'EM ANDAMENTO']
+    ];
+    const insert = db.prepare(`
+      INSERT INTO publicacoes (titulo, descricao, categoria, informacao, status)
+      VALUES (?, ?, ?, ?, ?)
+    `);
+    publicacoes.forEach((item) => insert.run(item));
+    insert.finalize();
+  });
+
   // Dados Iniciais (Seed)
   db.get('SELECT COUNT(*) AS total FROM colaboradores', [], (err, row) => {
     if (err) return;
@@ -258,10 +266,103 @@ db.serialize(() => {
 });
 
 // ==========================================
+// ROTAS DA API: AUTENTICAÇÃO / LOGIN
+// ==========================================
+app.post('/api/login', (req, res) => {
+  const { username, password, profile } = req.body || {};
+  if (typeof username !== 'string' || typeof password !== 'string' || typeof profile !== 'string') {
+    return res.status(400).json({ success: false, message: 'Informe usuário, senha e perfil.' });
+  }
+
+  db.get('SELECT username, profile, password_salt, password_hash FROM usuarios WHERE username = ? AND profile = ?', [username.trim(), profile], (err, user) => {
+    if (err) return res.status(500).json({ success: false, message: 'Erro ao validar o acesso.' });
+    if (!user || !verificarSenha(password, user.password_salt, user.password_hash)) {
+      return res.status(401).json({ success: false, message: 'E-mail, senha ou perfil incorretos!' });
+    }
+    return res.json({ success: true, message: 'Autenticação realizada com sucesso!', profile: user.profile });
+  });
+});
+
+app.post('/api/alterar-senha', (req, res) => {
+  const { username, newPassword } = req.body || {};
+  if (typeof username !== 'string' || typeof newPassword !== 'string' || newPassword.length < 4) {
+    return res.status(400).json({ success: false, message: 'Informe o usuário e uma senha com pelo menos 4 caracteres.' });
+  }
+
+  const { salt, hash } = criarHashSenha(newPassword);
+  db.run('UPDATE usuarios SET password_salt = ?, password_hash = ? WHERE username = ?', [salt, hash, username.trim()], function (err) {
+    if (err) return res.status(500).json({ success: false, message: 'Erro ao salvar a nova senha.' });
+    if (this.changes === 0) return res.status(404).json({ success: false, message: 'Usuário não encontrado.' });
+    return res.json({ success: true, message: 'Senha alterada com sucesso.' });
+  });
+});
+
+// ==========================================
 // ROTAS DA API: AMBULATÓRIO
 // ==========================================
 app.get('/api/ambulatorio/dashboard', (req, res) => {
-  res.json({ ativos: 148, asosVencidos: 3, alertas: 7, examesMes: 34 });
+  db.get(`
+    SELECT
+      (SELECT COUNT(*) FROM colaboradores WHERE status = 'Ativo') AS ativos,
+      (SELECT COUNT(*) FROM colaboradores WHERE aso_status = 'Vencido') AS asosVencidos,
+      (SELECT COUNT(*) FROM colaboradores WHERE aso_status IN ('Vencido', 'A vencer')) +
+        (SELECT COUNT(*) FROM exames WHERE resultado IN ('Alterado', 'Em Análise', 'Pendente')) AS alertas,
+      (SELECT COUNT(*) FROM exames WHERE strftime('%Y-%m', data) = strftime('%Y-%m', 'now', 'localtime')) AS examesMes,
+      (SELECT COUNT(*) FROM exames) AS examesTotal,
+      (SELECT COUNT(*) FROM colaboradores WHERE aso_status = 'Em dia') AS asoEmDia,
+      (SELECT COUNT(*) FROM colaboradores WHERE aso_status = 'A vencer') AS asoAVencer,
+      (SELECT COUNT(*) FROM exames WHERE resultado = 'Normal') AS examesNormais,
+      (SELECT COUNT(*) FROM exames WHERE resultado = 'Alterado') AS examesAlterados,
+      (SELECT COUNT(*) FROM exames WHERE resultado IN ('Em Análise', 'Pendente')) AS examesPendentes
+  `, [], (err, row) => {
+    if (err) return res.status(500).json({ error: 'Não foi possível carregar os indicadores.' });
+    res.json(row);
+  });
+});
+
+app.get('/api/ambulatorio/alertas', (req, res) => {
+  db.all(`
+    SELECT 'ASO' AS tipo, nome AS colaborador, matricula, aso_status AS status,
+      proximo_exame AS data, '' AS descricao
+    FROM colaboradores
+    WHERE aso_status IN ('Vencido', 'A vencer')
+    UNION ALL
+    SELECT 'Exame' AS tipo, c.nome AS colaborador, c.matricula, e.resultado AS status,
+      e.data, e.tipo || CASE WHEN e.observacao IS NOT NULL AND e.observacao != '' THEN ' — ' || e.observacao ELSE '' END AS descricao
+    FROM exames e
+    JOIN colaboradores c ON c.nome = e.colaborador
+    WHERE e.resultado IN ('Alterado', 'Em Análise', 'Pendente')
+    ORDER BY data DESC
+  `, [], (err, rows) => {
+    if (err) return res.status(500).json({ error: 'Não foi possível carregar os alertas.' });
+    res.json(rows);
+  });
+});
+
+app.get('/api/funcionario/dashboard', (req, res) => {
+  const username = String(req.query.username || '').trim();
+  if (!username) return res.status(400).json({ error: 'Usuário não informado.' });
+  db.get(`
+    SELECT c.nome, c.proximo_exame, c.aso_status, c.alergias, c.comorbidades,
+      (SELECT COUNT(*) FROM exames e WHERE e.colaborador = c.nome) AS exames,
+      (SELECT COUNT(*) FROM exames e WHERE e.colaborador = c.nome AND e.resultado IN ('Alterado', 'Em Análise')) AS alertas
+    FROM colaboradores c
+    JOIN usuarios u ON u.matricula = c.matricula
+    WHERE u.username = ? AND u.profile = 'fun'
+  `, [username], (err, row) => {
+    if (err) return res.status(500).json({ error: 'Não foi possível carregar os indicadores.' });
+    if (!row) return res.status(404).json({ error: 'Perfil de funcionário não encontrado.' });
+    db.all(`
+      SELECT tipo, data, resultado
+      FROM exames
+      WHERE colaborador = ?
+      ORDER BY data DESC
+      LIMIT 5
+    `, [row.nome], (examsErr, exams) => {
+      if (examsErr) return res.status(500).json({ error: 'Não foi possível carregar o histórico de exames.' });
+      res.json({ ...row, examesRecentes: exams });
+    });
+  });
 });
 
 app.get('/api/ambulatorio/exames', (req, res) => {
@@ -428,46 +529,60 @@ app.delete('/api/colaboradores/:id', (req, res) => {
 // ROTAS DA API: FUNCIONÁRIO
 // ==========================================
 function montarPerfil(row) {
-  const alergias = (row?.alergias || 'Penicilina — Reação anafilática confirmada\nAmendoim — Intolerância documentada').split('\n').map(item => item.trim()).filter(Boolean);
-  const comorbidades = (row?.comorbidades || '').split('\n').map(item => item.trim()).filter(Boolean);
+  const alergias = (row.alergias || '').split('\n').map(item => item.trim()).filter(Boolean);
+  const comorbidades = (row.comorbidades || '').split('\n').map(item => item.trim()).filter(Boolean);
 
   return {
-    nome: row?.nome || 'Maria Fernandes',
-    matricula: row?.matricula || '12345',
-    cargo: row?.cargo || 'Op. de Máquina',
-    setor: row?.setor || 'Linha de Produção 3',
-    turno: row?.turno || 'Turno A',
-    status: row?.status || 'Ativo',
-    idade: 62,
-    tipoSanguineo: 'O+',
-    admissao: row?.admissao || '03/2011',
-    regime: 'CLT - Integral',
+    nome: row.nome,
+    matricula: row.matricula,
+    cargo: row.cargo || '-',
+    setor: row.setor || '-',
+    turno: row.turno || '-',
+    status: row.status || '-',
+    idade: null,
+    tipoSanguineo: row.tipo_sanguineo || '-',
+    admissao: row.admissao || '-',
+    regime: row.regime || '-',
     alergias,
     comorbidades,
     condicoes: [
       ...alergias.map(desc => ({ tipo: 'Alergia', desc, cor: 'red' })),
-      ...comorbidades.map(desc => ({ tipo: 'Comorbidade', desc, cor: 'orange' })),
-      { tipo: 'PCD', desc: 'Mobilidade — Laudo INSS — Portaria 2024', cor: 'teal' },
-      { tipo: 'Doadora', desc: 'Doadora de Sangue — Tipo O+ - Última doação 04/2026', cor: 'orange' }
+      ...comorbidades.map(desc => ({ tipo: 'Comorbidade', desc, cor: 'orange' }))
     ]
   };
 }
 
 app.get('/api/funcionario/perfil', (req, res) => {
-  db.get('SELECT * FROM colaboradores WHERE id = 1', [], (err, row) => {
+  const username = String(req.query.username || '').trim();
+  if (!username) return res.status(400).json({ error: 'Usuário não informado.' });
+  db.get(`
+    SELECT c.* FROM colaboradores c
+    JOIN usuarios u ON u.matricula = c.matricula
+    WHERE u.username = ? AND u.profile = 'fun'
+  `, [username], (err, row) => {
     if (err) return res.status(500).json({ error: err.message });
+    if (!row) return res.status(404).json({ error: 'Perfil de funcionário não encontrado.' });
     res.json(montarPerfil(row));
   });
 });
 
 app.put('/api/funcionario/perfil', (req, res) => {
+  const username = String(req.query.username || '').trim();
+  if (!username) return res.status(400).json({ error: 'Usuário não informado.' });
   const alergias = String(req.body?.alergias || '').split('\n').map(item => item.trim()).filter(Boolean).join('\n');
   const comorbidades = String(req.body?.comorbidades || '').split('\n').map(item => item.trim()).filter(Boolean).join('\n');
 
-  db.run('UPDATE colaboradores SET alergias = ?, comorbidades = ? WHERE id = 1', [alergias, comorbidades], function (err) {
+  db.run(`
+    UPDATE colaboradores SET alergias = ?, comorbidades = ?
+    WHERE matricula = (SELECT matricula FROM usuarios WHERE username = ? AND profile = 'fun')
+  `, [alergias, comorbidades, username], function (err) {
     if (err) return res.status(500).json({ error: err.message });
     if (this.changes === 0) return res.status(404).json({ error: 'Colaborador não encontrado' });
-    db.get('SELECT * FROM colaboradores WHERE id = 1', [], (selectErr, row) => {
+    db.get(`
+      SELECT c.* FROM colaboradores c
+      JOIN usuarios u ON u.matricula = c.matricula
+      WHERE u.username = ? AND u.profile = 'fun'
+    `, [username], (selectErr, row) => {
       if (selectErr) return res.status(500).json({ error: selectErr.message });
       res.json(montarPerfil(row));
     });
@@ -475,20 +590,42 @@ app.put('/api/funcionario/perfil', (req, res) => {
 });
 
 app.get('/api/funcionario/alertas', (req, res) => {
-  res.json({
-    pendenciaPrincipal: {
-      titulo: "ASO PENDENTE DE REAVALIAÇÃO",
-      descricao: "Exame de colesterol total fora da faixa de referência — resultado 240 mg/dL (referência até 200 mg/dL), coletado em 22/07/2026. O serviço médico recomenda reavaliação com cardiologista e repetição do exame em 30 dias.",
-      dataEmissao: "22/07/2026",
-      prazo: "22/08/2026",
-      diasRestantes: 16
-    },
-    encaminhamentos: [
-      { especialidade: "CLÍNICO GERAL", medico: "Dra. Ana Costa", local: "Ambulatório da Planta — Bloco C", status: "Consulta agendada", data: "12/08/2026 · 14h30", cor: "teal" },
-      { especialidade: "CARDIOLOGIA", medico: "Dr. Ricardo Melo", local: "Rede credenciada SESI — Unidade Centro", status: "Aguardando agendamento", data: "Prazo: 22/08/2026", cor: "orange" },
-      { especialidade: "FISIOTERAPIA", medico: "Ft. Carla Souza", local: "Ambulatório da Planta — Bloco C", status: "Em tratamento", data: "3 sessões realizadas", cor: "teal" },
-      { especialidade: "EXAME LABORATORIAL", medico: "Perfil Lipídico Completo", local: "Laboratório Central — Bloco A", status: "Solicitado", data: "Prazo: 30/08/2026", cor: "orange" }
-    ]
+  const username = String(req.query.username || '').trim();
+  if (!username) return res.status(400).json({ error: 'Usuário não informado.' });
+  db.get(`
+    SELECT c.nome FROM colaboradores c
+    JOIN usuarios u ON u.matricula = c.matricula
+    WHERE u.username = ? AND u.profile = 'fun'
+  `, [username], (profileErr, collaborator) => {
+    if (profileErr) return res.status(500).json({ error: profileErr.message });
+    if (!collaborator) return res.status(404).json({ error: 'Perfil de funcionário não encontrado.' });
+
+    db.all(`
+      SELECT tipo, data, resultado, medico, observacao
+      FROM exames
+      WHERE colaborador = ? AND resultado IN ('Alterado', 'Em Análise', 'Pendente')
+      ORDER BY data DESC
+    `, [collaborator.nome], (err, exams) => {
+      if (err) return res.status(500).json({ error: err.message });
+      const pendencia = exams[0];
+      res.json({
+        pendenciaPrincipal: pendencia ? {
+          titulo: `RESULTADO ${pendencia.resultado.toUpperCase()}`,
+          descricao: [pendencia.tipo, pendencia.observacao].filter(Boolean).join(' — '),
+          dataEmissao: pendencia.data,
+          prazo: 'Consulte o ambulatório',
+          diasRestantes: null
+        } : null,
+        encaminhamentos: exams.map(exam => ({
+          especialidade: exam.tipo,
+          medico: exam.medico || 'Equipe do ambulatório',
+          local: 'Ambulatório HealthData',
+          status: exam.resultado === 'Alterado' ? 'Acompanhamento recomendado' : 'Resultado pendente',
+          data: exam.data,
+          cor: 'orange'
+        }))
+      });
+    });
   });
 });
 

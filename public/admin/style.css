@@ -22,11 +22,11 @@
   --bg-card: #ffffff;
   --bg-sidebar: #ffffff;
   --border-color: #e2e8f0;
-  --text-main: #0f172a;
+  --text-main: #142c42;
   --text-muted: #64748b;
 }
 
-* { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: "Trebuchet MS", "Segoe UI", sans-serif; }
 
 body { display: flex; height: 100vh; background-color: var(--bg-main); color: var(--text-main); overflow: hidden; }
 
@@ -102,6 +102,7 @@ body { display: flex; height: 100vh; background-color: var(--bg-main); color: va
 
 /* Aba Alertas */
 .alerts-list { display: flex; flex-direction: column; gap: 16px; }
+#adminAlertsList[hidden] { display: none; }
 .alert-card { background: var(--bg-card); border: 1px solid var(--border-color); padding: 20px; border-radius: 8px; position: relative; }
 .alert-border-red { border-left: 4px solid var(--tag-red-text); }
 .alert-border-yellow { border-left: 4px solid var(--tag-yellow-text); }
@@ -188,6 +189,7 @@ th { color: var(--text-muted); font-weight: 600; font-size: 12px; text-transform
 .star-btn.active { color: var(--tag-yellow-text); }
 .action-btn { background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 4px; border-radius: 4px; }
 .table-footer { padding: 12px 16px; font-size: 12px; color: var(--text-muted); }
+.empty-state { color: var(--text-muted); font-size: 13px; padding: 18px; }
 
 .btn-primary-orange { background-color: var(--orange-brand); color: #ffffff; border: none; padding: 10px 18px; border-radius: 6px; font-weight: 600; font-size: 14px; cursor: pointer; }
 .btn-primary-orange:hover { background-color: var(--orange-brand-hover); }

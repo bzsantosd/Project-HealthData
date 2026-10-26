@@ -17,10 +17,12 @@ navItems.forEach(item => {
   });
 });
 
-document.getElementById('btnGoAlerts')?.addEventListener('click', () => switchTab('tab-colaboradores'));
+document.getElementById('btnGoAlerts')?.addEventListener('click', () => switchTab('tab-exames'));
 
 document.querySelector('button[title="Sair"]')?.addEventListener('click', () => {
   sessionStorage.clear();
+  localStorage.removeItem('userProfile');
+  localStorage.removeItem('username');
   window.location.assign('/login');
 });
 
@@ -120,6 +122,12 @@ publicacaoImagem?.addEventListener('change', () => {
 function renderizarPublicacoes(publicacoes) {
   const grid = document.getElementById('publicacoesGrid');
   if (!grid || !Array.isArray(publicacoes)) return;
+  grid.innerHTML = '';
+
+  if (publicacoes.length === 0) {
+    grid.innerHTML = '<p class="empty-state">Nenhuma publicação disponível no momento.</p>';
+    return;
+  }
 
   publicacoes.forEach(publicacao => {
     const card = document.createElement('article');
@@ -141,12 +149,33 @@ function renderizarPublicacoes(publicacoes) {
 }
 
 async function carregarPublicacoes() {
+  const grid = document.getElementById('publicacoesGrid');
   try {
     const response = await fetch('/api/ambulatorio/publicacoes');
     if (!response.ok) throw new Error(`Status ${response.status}`);
     renderizarPublicacoes(await response.json());
   } catch (error) {
+    if (grid) grid.innerHTML = '<p class="empty-state">Não foi possível carregar as publicações.</p>';
     console.error('Erro ao carregar publicações:', error);
+  }
+}
+
+async function carregarIndicadores() {
+  try {
+    const response = await fetch('/api/ambulatorio/dashboard');
+    if (!response.ok) throw new Error(`Erro HTTP ${response.status}`);
+    const indicadores = await response.json();
+    document.querySelectorAll('[data-metric]').forEach(element => {
+      const value = indicadores[element.dataset.metric];
+      if (value !== undefined) element.textContent = value;
+    });
+    const alertCount = document.getElementById('topAlertCount');
+    if (alertCount) alertCount.textContent = indicadores.alertas;
+  } catch (error) {
+    console.error('Erro ao carregar indicadores:', error);
+    document.querySelectorAll('[data-metric]').forEach(element => {
+      element.textContent = '—';
+    });
   }
 }
 
@@ -629,3 +658,4 @@ carregarColaboradores();
 carregarExames();
 carregarMedicos();
 carregarPublicacoes();
+carregarIndicadores();

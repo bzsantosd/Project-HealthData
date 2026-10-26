@@ -103,6 +103,8 @@ if (settingsProfileUsername) settingsProfileUsername.textContent = sessionStorag
 
 document.querySelector('button[title="Sair"]')?.addEventListener('click', () => {
   sessionStorage.clear();
+  localStorage.removeItem('userProfile');
+  localStorage.removeItem('username');
   window.location.assign('/login');
 });
 
@@ -111,7 +113,8 @@ document.querySelector('button[title="Sair"]')?.addEventListener('click', () => 
 // ==========================================
 async function carregarPerfil() {
   try {
-    const response = await fetch('/api/funcionario/perfil');
+    const username = encodeURIComponent(sessionStorage.getItem('username') || '');
+    const response = await fetch(`/api/funcionario/perfil?username=${username}`);
     if (!response.ok) throw new Error("Erro ao buscar perfil");
 
     const data = await response.json();
@@ -127,6 +130,7 @@ async function carregarPerfil() {
     setText('perfilResumo', `${data.cargo} · ${data.setor}`);
     setText('perfilStatus', `${data.turno} — ${data.status}`);
     setText('perfilNomeCompleto', data.nome);
+    setText('perfilNascimento', data.dataNascimento);
     setText('perfilIdade', data.idade ? `${data.idade} anos` : '-');
     setText('perfilSangue', data.tipoSanguineo);
     setText('perfilMatricula', data.matricula);
@@ -168,7 +172,8 @@ perfilForm?.addEventListener('submit', async event => {
   };
 
   try {
-    const response = await fetch('/api/funcionario/perfil', {
+    const username = encodeURIComponent(sessionStorage.getItem('username') || '');
+    const response = await fetch(`/api/funcionario/perfil?username=${username}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
@@ -185,12 +190,18 @@ perfilForm?.addEventListener('submit', async event => {
 });
 
 async function carregarPublicacoes() {
+  const grid = document.getElementById('publicacoesGrid');
   try {
     const response = await fetch('/api/ambulatorio/publicacoes');
     if (!response.ok) throw new Error('Erro ao buscar publicações');
     const publicacoes = await response.json();
-    const grid = document.getElementById('publicacoesGrid');
     if (!grid || !Array.isArray(publicacoes)) return;
+    grid.innerHTML = '';
+
+    if (publicacoes.length === 0) {
+      grid.innerHTML = '<p class="empty-state">Nenhuma publicação disponível no momento.</p>';
+      return;
+    }
 
     publicacoes.forEach(publicacao => {
       const card = document.createElement('article');
@@ -210,6 +221,7 @@ async function carregarPublicacoes() {
       grid.appendChild(card);
     });
   } catch (error) {
+    if (grid) grid.innerHTML = '<p class="empty-state">Não foi possível carregar as publicações.</p>';
     console.error('Erro ao carregar publicações:', error);
   }
 }
@@ -254,7 +266,8 @@ async function carregarMedicosCredenciados() {
 // ==========================================
 async function carregarAlertas() {
   try {
-    const response = await fetch('/api/funcionario/alertas');
+    const username = encodeURIComponent(sessionStorage.getItem('username') || '');
+    const response = await fetch(`/api/funcionario/alertas?username=${username}`);
     if (!response.ok) throw new Error("Erro ao buscar alertas");
 
     const data = await response.json();
@@ -269,15 +282,17 @@ async function carregarAlertas() {
       
       const prazoText = alertBanner.querySelector('.prazo-text');
       if (prazoText) {
-        prazoText.innerHTML = `Prazo para reavaliação: <strong>${p.prazo}</strong> —${p.diasRestantes} dias restantes`;
+        prazoText.textContent = `Prazo para reavaliação: ${p.prazo}`;
       }
+    } else if (alertBanner) {
+      alertBanner.innerHTML = '<h3>Nenhum alerta de exame</h3><p>Não há resultados que exijam acompanhamento no momento.</p>';
     }
 
     // Preenche a lista de Encaminhamentos
     const encaminhamentosGrid = document.querySelector('.encaminhamentos-grid');
     if (encaminhamentosGrid && data.encaminhamentos) {
       encaminhamentosAtuais = data.encaminhamentos;
-      encaminhamentosGrid.innerHTML = data.encaminhamentos.map((enc, index) => `
+      encaminhamentosGrid.innerHTML = data.encaminhamentos.length ? data.encaminhamentos.map((enc, index) => `
         <div class="enc-card border-${enc.cor}">
           <span class="enc-tag">${escapeHtml(enc.especialidade)}</span>
           <h3>${escapeHtml(enc.medico)}</h3>
@@ -287,11 +302,60 @@ async function carregarAlertas() {
             <button class="detail-link" type="button" data-detail-index="${index}">Detalhes →</button>
           </div>
         </div>
-      `).join('');
+      `).join('') : '<p class="empty-state">Nenhum encaminhamento registrado.</p>';
     }
 
   } catch (error) {
     console.error("Erro ao carregar os alertas:", error);
+  }
+}
+
+async function carregarIndicadores() {
+  const username = encodeURIComponent(sessionStorage.getItem('username') || '');
+  try {
+    const response = await fetch(`/api/funcionario/dashboard?username=${username}`);
+    if (!response.ok) throw new Error(`Erro HTTP ${response.status}`);
+    const indicadores = await response.json();
+    const values = {
+      exames: indicadores.exames,
+      alertas: indicadores.alertas,
+      proximoExame: indicadores.proximo_exame || 'Não agendado'
+    };
+    document.querySelectorAll('[data-metric]').forEach(element => {
+      element.textContent = values[element.dataset.metric] ?? '—';
+    });
+    const alertCount = document.getElementById('topAlertCount');
+    const alertBadge = document.getElementById('alertNavBadge');
+    if (alertCount) alertCount.textContent = indicadores.alertas;
+    if (alertBadge) alertBadge.textContent = indicadores.alertas;
+    const goals = document.getElementById('employeeGoals');
+    if (goals) {
+      const allergyCount = String(indicadores.alergias || '').split('\n').filter(Boolean).length;
+      const conditionCount = String(indicadores.comorbidades || '').split('\n').filter(Boolean).length;
+      goals.innerHTML = `
+        <div class="goal-item"><div class="goal-heading"><strong>Status do ASO</strong><span class="goal-value">${escapeHtml(indicadores.aso_status || 'Não informado')}</span></div></div>
+        <div class="goal-item"><div class="goal-heading"><strong>Alergias cadastradas</strong><span class="goal-value">${allergyCount}</span></div></div>
+        <div class="goal-item"><div class="goal-heading"><strong>Comorbidades cadastradas</strong><span class="goal-value">${conditionCount}</span></div></div>
+      `;
+    }
+    const history = document.getElementById('employeeExamHistory');
+    if (history) {
+      history.innerHTML = indicadores.examesRecentes.length ? indicadores.examesRecentes.map(exam => `
+        <div class="timeline-item">
+          <span class="timeline-dot ${exam.resultado === 'Normal' ? 'dot-teal' : 'dot-orange'}"></span>
+          <div><strong>${escapeHtml(exam.tipo)} — ${escapeHtml(exam.resultado)}</strong><p>${escapeHtml(exam.data)}</p></div>
+        </div>
+      `).join('') : '<p class="empty-state">Nenhum exame registrado.</p>';
+    }
+  } catch (error) {
+    console.error('Erro ao carregar indicadores do funcionário:', error);
+    document.querySelectorAll('[data-metric]').forEach(element => {
+      element.textContent = '—';
+    });
+    const goals = document.getElementById('employeeGoals');
+    if (goals) goals.innerHTML = '<p class="empty-state">Não foi possível carregar os dados.</p>';
+    const history = document.getElementById('employeeExamHistory');
+    if (history) history.innerHTML = '<p class="empty-state">Não foi possível carregar o histórico.</p>';
   }
 }
 
@@ -323,16 +387,6 @@ document.querySelector('.encaminhamentos-grid')?.addEventListener('click', event
 document.getElementById('btnFecharDetalhes')?.addEventListener('click', fecharDetalhes);
 document.getElementById('btnFecharDetalhesRodape')?.addEventListener('click', fecharDetalhes);
 
-document.getElementById('btnVerLaudo')?.addEventListener('click', () => {
-  alert('O laudo está disponível para consulta com o ambulatório.');
-});
-
-document.getElementById('btnAgendar')?.addEventListener('click', (event) => {
-  const button = event.currentTarget;
-  button.textContent = 'REAVALIAÇÃO SOLICITADA';
-  button.disabled = true;
-});
-
 // ==========================================
 // 4. INICIALIZAÇÃO
 // ==========================================
@@ -341,6 +395,7 @@ document.addEventListener('DOMContentLoaded', () => {
   carregarAlertas();
   carregarPublicacoes();
   carregarMedicosCredenciados();
+  carregarIndicadores();
 });
 
 document.getElementById('btnGoAlerts')?.addEventListener('click', () => switchFuncionarioTab('tab-alertas'));

@@ -38,7 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
         event.preventDefault();
 
         const username = document.getElementById('username')?.value.trim();
-        const password = document.getElementById('password')?.value.trim();
+        const password = document.getElementById('password')?.value;
         const profile = profileInput?.value;
         const errorMessage = document.getElementById('errorMessage');
 
@@ -58,6 +58,13 @@ document.addEventListener('DOMContentLoaded', () => {
             if (response.ok && data.success) {
                 sessionStorage.setItem('userProfile', data.profile);
                 sessionStorage.setItem('username', username);
+                if (document.getElementById('rememberMe')?.checked) {
+                    localStorage.setItem('userProfile', data.profile);
+                    localStorage.setItem('username', username);
+                } else {
+                    localStorage.removeItem('userProfile');
+                    localStorage.removeItem('username');
+                }
 
                 const redirectRoutes = {
                     adm: '/admin/',

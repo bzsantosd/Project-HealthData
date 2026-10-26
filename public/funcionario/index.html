@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-<html lang="pt-BR" data-theme="dark">
+<html lang="pt-BR" data-theme="light">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>HealthData - Portal do Colaborador</title>
   <link rel="stylesheet" href="style.css?v=3">
 </head>
-<body>
+<body data-required-profile="fun">
 
   <aside class="sidebar">
     <div class="sidebar-top">
@@ -19,7 +19,7 @@
     <nav class="sidebar-nav">
       <button class="nav-item active" data-tab="tab-home" title="Painel"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg></button>
       <button class="nav-item" data-tab="tab-perfil" title="Perfil"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg></button>
-      <button class="nav-item badge-parent" data-tab="tab-alertas" title="Alertas"><span class="nav-badge">2</span><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg></button>
+      <button class="nav-item badge-parent" data-tab="tab-alertas" title="Alertas"><span class="nav-badge" id="alertNavBadge">0</span><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg></button>
       <button class="nav-item" data-tab="tab-metas" title="Indicadores"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg></button>
       <button class="nav-item" data-tab="tab-configuracoes" title="Configurações">
         <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3"/></svg>
@@ -34,7 +34,7 @@
       <span class="brand-title">HealthData</span>
       <div class="topbar-actions">
         <button class="btn-theme-toggle" id="themeToggle" type="button" aria-label="Alternar tema"><span id="themeIcon" aria-hidden="true"></span><span id="themeText">Claro</span></button>
-        <button class="notif-badge" id="btnGoAlerts" type="button" title="Abrir alertas" aria-label="Abrir alertas"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 17h5l-1.4-1.4A2 2 0 0 1 18 14.2V11a6 6 0 0 0-12 0v3.2a2 2 0 0 1-.6 1.4L4 17h5m6 0v1a3 3 0 0 1-6 0v-1"/></svg><span class="notif-count">2</span></button>
+        <button class="notif-badge" id="btnGoAlerts" type="button" title="Abrir alertas" aria-label="Abrir alertas"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 17h5l-1.4-1.4A2 2 0 0 1 18 14.2V11a6 6 0 0 0-12 0v3.2a2 2 0 0 1-.6 1.4L4 17h5m6 0v1a3 3 0 0 1-6 0v-1"/></svg><span class="notif-count" id="topAlertCount">0</span></button>
         <button class="user-avatar" id="btnUserSettings" type="button" title="Abrir configurações do perfil" aria-label="Abrir configurações do perfil">MF</button>
       </div>
     </header>
@@ -118,7 +118,7 @@
             </div>
             <div class="profile-details-grid">
               <div><label>NOME COMPLETO</label><p id="perfilNomeCompleto">-</p></div>
-              <div><label>DATA DE NASCIMENTO</label><p>12/03/1964</p></div>
+              <div><label>DATA DE NASCIMENTO</label><p id="perfilNascimento">-</p></div>
               <div><label>IDADE</label><p id="perfilIdade">-</p></div>
               <div><label>TIPO SANGUÍNEO</label><p id="perfilSangue">-</p></div>
               <div><label>MATRÍCULA</label><p id="perfilMatricula">-</p></div>
@@ -133,10 +133,7 @@
           <div class="profile-side-column">
             <div class="side-card" id="condicoesCard">
               <h3>CONDIÇÕES E RESTRIÇÕES</h3>
-              <div class="condition-item red"><strong>Alergia — Penicilina</strong><p>Reação anafilática confirmada</p></div>
-              <div class="condition-item red"><strong>Alergia — Amendoim</strong><p>Intolerância documentada</p></div>
-              <div class="condition-item teal"><strong>PCD — Mobilidade</strong><p>Laudo INSS — Portaria 2024</p></div>
-              <div class="condition-item orange"><strong>Doadora de Sangue</strong><p>Tipo O+ · Última doação 04/2026</p></div>
+              <p class="empty-state">Carregando informações...</p>
             </div>
           </div>
         </div>
@@ -149,32 +146,15 @@
 
         <div class="alert-banner-red mt-24">
           <div class="alert-banner-header">
-            <h3>⚠️ ASO PENDENTE DE REAVALIAÇÃO</h3>
-            <span>Emitido em 22/07/2026</span>
+            <h3>Carregando alertas...</h3>
+              <span></span>
           </div>
-          <p>Exame de colesterol total fora da faixa de referência — resultado 240 mg/dL (referência até 200 mg/dL), coletado em 22/07/2026. O serviço médico recomenda reavaliação com cardiologista e repetição do exame em 30 dias.</p>
-          <div class="alert-actions">
-            <button class="btn-outline-light" id="btnVerLaudo" type="button">VER LAUDO</button>
-            <button class="btn-solid-orange" id="btnAgendar" type="button">📅 AGENDAR REAVALIAÇÃO</button>
-          </div>
-          <p class="prazo-text">Prazo para reavaliação: <strong>22/08/2026</strong> — 16 dias restantes</p>
+          <p></p>
+          <p class="prazo-text"></p>
         </div>
 
         <h2 class="mt-24 mb-16">ENCAMINHAMENTOS ATIVOS</h2>
-        <div class="encaminhamentos-grid">
-          <div class="enc-card border-teal">
-            <span class="enc-tag">CLÍNICO GERAL</span>
-            <h3>Dra. Ana Costa</h3>
-            <p>Ambulatório da Planta — Bloco C</p>
-            <div class="enc-footer"><span class="badge-status-teal">Consulta agendada</span><button class="detail-link" type="button" data-detail-index="0">Detalhes →</button></div>
-          </div>
-          <div class="enc-card border-orange">
-            <span class="enc-tag">CARDIOLOGIA</span>
-            <h3>Dr. Ricardo Melo</h3>
-            <p>Rede credenciada SESI — Unidade Centro</p>
-            <div class="enc-footer"><span class="badge-status-orange">Aguardando agendamento</span><button class="detail-link" type="button" data-detail-index="1">Detalhes →</button></div>
-          </div>
-        </div>
+        <div class="encaminhamentos-grid"><p class="empty-state">Carregando encaminhamentos...</p></div>
       </section>
 
       <!-- ABA 4: INDICADORES E METAS -->
@@ -182,53 +162,27 @@
         <div class="section-heading">
           <div>
             <h1>Indicadores e Metas</h1>
-            <p class="subtitle">Acompanhamento de conformidade e saúde ocupacional — 2026</p>
+            <p class="subtitle">Acompanhamento com base nos dados registrados</p>
           </div>
           <span class="period-badge">ANO 2026</span>
         </div>
 
         <div class="stats-grid mt-24">
-          <div class="stat-card metric-teal"><span class="stat-title">Exames realizados</span><span class="stat-value">7</span><span class="stat-sub">em 2026</span></div>
-          <div class="stat-card metric-orange"><span class="stat-title">Atestados médicos</span><span class="stat-value">2</span><span class="stat-sub">último trimestre</span></div>
-          <div class="stat-card metric-red"><span class="stat-title">Dias de afastamento</span><span class="stat-value">3</span><span class="stat-sub">último trimestre</span></div>
-          <div class="stat-card metric-blue"><span class="stat-title">Próximo exame</span><span class="stat-value">14/10</span><span class="stat-sub">ASO de reavaliação</span></div>
+          <div class="stat-card metric-teal"><span class="stat-title">Exames registrados</span><span class="stat-value" data-metric="exames">—</span><span class="stat-sub">no sistema</span></div>
+          <div class="stat-card metric-orange"><span class="stat-title">Alertas</span><span class="stat-value" data-metric="alertas">—</span><span class="stat-sub">de exames</span></div>
+          <div class="stat-card metric-red"><span class="stat-title">Atestados e afastamentos</span><span class="stat-value">—</span><span class="stat-sub">Não há registros no sistema</span></div>
+          <div class="stat-card metric-blue"><span class="stat-title">Próximo exame</span><span class="stat-value" data-metric="proximoExame">—</span><span class="stat-sub">conforme cadastro</span></div>
         </div>
 
         <div class="metrics-content-grid mt-24">
           <div class="metrics-panel">
-            <div class="panel-heading"><div><h2>Minhas metas de saúde</h2><p class="subtitle">Acompanhe seu progresso no período</p></div><span class="panel-status">3 de 4 em dia</span></div>
-            <div class="goal-list">
-              <div class="goal-item">
-                <div class="goal-heading"><strong>Exames periódicos</strong><span class="goal-value goal-success">100%</span></div>
-                <p>Exame ocupacional realizado dentro do prazo</p>
-                <div class="progress-track"><span class="progress-fill progress-teal" style="width: 100%"></span></div>
-              </div>
-              <div class="goal-item">
-                <div class="goal-heading"><strong>ASO atualizado</strong><span class="goal-value goal-warning">80%</span></div>
-                <p>Reavaliação cardiológica pendente</p>
-                <div class="progress-track"><span class="progress-fill progress-orange" style="width: 80%"></span></div>
-              </div>
-              <div class="goal-item">
-                <div class="goal-heading"><strong>Treinamentos obrigatórios</strong><span class="goal-value goal-success">100%</span></div>
-                <p>Todos os treinamentos do ciclo concluídos</p>
-                <div class="progress-track"><span class="progress-fill progress-teal" style="width: 100%"></span></div>
-              </div>
-              <div class="goal-item">
-                <div class="goal-heading"><strong>Registros de saúde</strong><span class="goal-value goal-danger">60%</span></div>
-                <p>Atualize suas informações de saúde no perfil</p>
-                <div class="progress-track"><span class="progress-fill progress-red" style="width: 60%"></span></div>
-              </div>
-            </div>
+            <div class="panel-heading"><div><h2>Meus dados de saúde</h2><p class="subtitle">Informações disponíveis no cadastro</p></div></div>
+            <div class="goal-list" id="employeeGoals"><p class="empty-state">Carregando dados...</p></div>
           </div>
 
           <div class="metrics-panel">
-            <div class="panel-heading"><div><h2>Resumo recente</h2><p class="subtitle">Últimas movimentações do seu acompanhamento</p></div></div>
-            <div class="timeline-list">
-              <div class="timeline-item"><span class="timeline-dot dot-teal"></span><div><strong>Exame periódico concluído</strong><p>Resultado normal · 22/07/2026</p></div></div>
-              <div class="timeline-item"><span class="timeline-dot dot-orange"></span><div><strong>Encaminhamento para cardiologia</strong><p>Aguardando agendamento · 22/07/2026</p></div></div>
-              <div class="timeline-item"><span class="timeline-dot dot-teal"></span><div><strong>Treinamento NR-17 concluído</strong><p>Participação registrada · 30/08/2026</p></div></div>
-              <div class="timeline-item"><span class="timeline-dot dot-red"></span><div><strong>Perfil de saúde atualizado</strong><p>Revise alergias e comorbidades</p></div></div>
-            </div>
+            <div class="panel-heading"><div><h2>Histórico recente</h2><p class="subtitle">Últimos exames registrados</p></div></div>
+            <div class="timeline-list" id="employeeExamHistory"><p class="empty-state">Carregando histórico...</p></div>
           </div>
         </div>
       </section>
@@ -323,6 +277,7 @@
     </div>
   </div>
 
+  <script src="../auth.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
